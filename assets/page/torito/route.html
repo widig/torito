@@ -1,0 +1,344 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="/load?file=./assets/page/torito/js/import.js"></script>
+		<script src="/load?file=./assets/page/torito/js/querystring.js"></script>
+		
+		<link data-name="vs/editor/editor.main" rel="stylesheet" href="/assets/control/monaco/dev/vs/editor/editor.main.css">
+		<script type="text/javascript" src="/assets/control/jquery/1.9.1/jquery.min.js"></script>
+		<script type="text/javascript" src="/assets/control/bootstrap/2.3.1/bootstrap.min.js"></script>
+		<script>var require = { paths: { 'vs': '/assets/control/monaco/dev/vs' } };</script>
+		<script src="/assets/control/monaco/dev/vs/loader.js"></script>
+		<style>
+			body {
+				font-family:Tahoma;
+				background-color: #498fff;
+			}
+			a:link, a:visited, a:hover, a:active {
+				background-color : #333;
+				color: #fff;
+				text-decoration:none;
+			}
+		  	.button, .button:link, .button:visited, .button:active {
+				background-color : #888;
+				color: #fff;
+				text-decoration:none;
+				padding : 5px;
+				padding-left:20px;
+			}
+			.button:hover {
+				background-color : #333;
+				border:solid 1px #fff;
+				color: #fff;
+				font-weight:bold;
+				text-decoration:none;
+				padding : 5px;
+				cursor: default;
+				padding-left:20px;
+			}
+			.borderBottom {
+				border-bottom : solid 1px #000;
+			}
+			.groupDir {
+				background-color : #777;
+				color: white;
+				padding: 5px;
+				font-size:20px;
+				font-weight:bold;
+			}
+		  
+		</style>
+
+		<script>
+			var cache = {};
+			var selected = {};
+			var codeEditor = null;
+			function saveRoute() {
+				if(selected.path!="") {
+					var str = codeEditor.getValue();
+					var dict = { 0 : "0", 1 : "1", 2 : "2", 3 : "3", 4 : "4", 5 : "5", 6 : "6", 7 : "7", 8: "8", 9 : "9", 10 : "A", 11 : "B", 12 : "C" , 13 : "D", 14 : "E", 15 : "F" };
+					var sb = [];
+					for(var x = 0; x < str.length;x++) {
+						var code = str.charCodeAt(x);
+						sb.push( dict[ (0xF0 & code) >> 4 ] + dict[ 0xF & code ]  );
+					}
+					Import({url:"/route",data:{action:"install",method:selected.method,path:selected.path,code:sb.join("")}})
+						.done(function(data) {
+							alert(data);
+							
+							var json = JSON.parse(data);
+							if( json.result ) {
+								alert("installed");
+								cache[ selected.method][ selected.path ] = codeEditor.getValue();
+							}
+						})
+						.send();
+				}
+			};
+			function openRoute(data,method,path) {
+				selected.data = data;
+				selected.method = method;
+				selected.path = path;
+				var title = document.getElementById("title");
+				title.innerHTML = method + ":" + path;
+				cache[ selected.method][ selected.path ] = data[method][path];
+				codeEditor.setValue(data[method][path]);
+			}
+			function setRouteClick(target,data,method,path) {
+				target.td.addEventListener("click",function() {
+					openRoute(data,method,path);
+				});
+				target.td.addEventListener("mouseup",function(event) {
+					if(event.button == 2) {
+						var obj = document.getElementById("cmnuRoute");
+						selected.data = data;
+						selected.method = method;
+						selected.path = path;
+						selected.target = target;
+						obj.style.position = "absolute";
+						obj.style.left = (mousePos.x-1) + "px";
+						obj.style.top = (mousePos.y-1) + "px";
+						obj.style.display = "";
+						cancelCmnu = 1;
+						obj.addEventListener("mouseleave",function() {
+							obj.style.display = "none";
+							cancelCmnu = 0;
+						});
+					}
+				});
+			}
+			function deleteRoute() {
+				var path = selected.path;
+				var method = selected.method;
+				if(path == "/" || path == "/route" || path == "/load") {
+					alert("you can't delete route '"+path+"'. it's native.");
+				} else {
+					if( confirm("are you sure to remove '" + path + "'?") ) {
+						Import({url:"/route",data: { action:"remove",path:path,method:method}})
+							.done(function(result) {
+								// remove button
+								selected.target.tr.removeChild( selected.target.td );
+								selected.target.table.removeChild( selected.target.tr );
+								//window.location.reload();
+								openRoute(selected.data,"get","/");
+								
+							})
+							.send();
+					}
+				}
+			}
+			
+			function resize() {
+				var menu = document.getElementById("menu");
+				menu.style.height = (window.innerHeight-20-170) + "px";
+				var menuRouteContents = document.getElementById("menuRouteContents");
+				menuRouteContents.style.overflow = "auto";
+				menuRouteContents.style.height = (window.innerHeight-65-170) + "px";
+				
+				var editorContainer = document.getElementById("editorContainer");
+				editorContainer.style.position = "absolute";
+				editorContainer.style.left = "250px";
+				editorContainer.style.top = "10px";
+				editorContainer.style.width = (window.innerWidth - 260) + "px";
+				editorContainer.style.height = (window.innerHeight - 20) + "px";
+				
+				var titleHeight = 25;
+				var title = document.getElementById("title");
+				title.style.position = "absolute";
+				title.style.left = "0px";
+				title.style.top = "0px";
+				title.style.width = (window.innerWidth - 280) + "px";
+				title.style.height = titleHeight + "px";
+				title.style.fontSize = "20px";
+				title.style.padding = "10px";
+				title.style.backgroundColor = "blue";
+				title.style.color = "white";
+				
+				
+				
+				var editor = document.getElementById("editor");
+				editor.style.position = "absolute";
+				editor.style.left = "0px";
+				editor.style.top = titleHeight+20 + "px";
+				editor.style.width = (window.innerWidth - 260)  + "px";
+				editor.style.height = (window.innerHeight - 40 - titleHeight) + "px";
+				
+				var addPathPanel = document.getElementById("addPathPanel");
+				addPathPanel.style.top = (window.innerHeight - 175) + "px";
+				
+				if(codeEditor) {
+					codeEditor.layout();
+				}
+			}
+			window.addEventListener("load",function() {
+				resize();
+				function handler(event) {
+					event = event || window.event;
+					if (event.stopPropagation)
+						event.stopPropagation();
+						console.log(event.button);
+					event.cancelBubble = true;
+					return false;
+				}
+				document.oncontextmenu = handler;
+				
+				function handleMouseMove(event) {
+					var dot, eventDoc, doc, body, pageX, pageY;
+					event = event || window.event; // IE-ism
+					if (event.pageX == null && event.clientX != null) {
+						eventDoc = (event.target && event.target.ownerDocument) || document;
+						doc = eventDoc.documentElement;
+						body = eventDoc.body;
+						event.pageX = event.clientX +
+						(doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+						(doc && doc.clientLeft || body && body.clientLeft || 0);
+						event.pageY = event.clientY +
+						(doc && doc.scrollTop  || body && body.scrollTop  || 0) -
+						(doc && doc.clientTop  || body && body.clientTop  || 0 );
+					}
+					mousePos = {
+						x: event.pageX,
+						y: event.pageY
+					};
+				}
+				document.onmousemove = handleMouseMove;
+
+
+				document.getElementById("cmnuRemove").addEventListener("click",function(){
+					var obj = document.getElementById("cmnuRoute");
+					obj.style.display = "none";
+					deleteRoute();
+				});
+
+				var title = document.getElementById("title");
+				
+
+				
+
+				document.getElementById("btnAddRoute").addEventListener("click",function() {
+					var path = document.getElementById("txtRoutePath").value;
+					var code = "(function(){\r\n\treturn function(req,res){ res.send(\""+path+"\");};\r\n})();";
+					var method = document.getElementById("rRouteMethod1").checked == true ? "get" : "";
+					if(method == "") method = document.getElementById("rRouteMethod2").checked == true ? "post" : "";
+					if(method == "") method = document.getElementById("rRouteMethod3").checked == true ? "static" : "";
+					if(method == "static") {
+						code = JSON.stringify({
+							path : path,
+							target : document.getElementById("txtStaticPath").value
+						});
+					}
+					var str = code;
+					var dict = { 0 : "0", 1 : "1", 2 : "2", 3 : "3", 4 : "4", 5 : "5", 6 : "6", 7 : "7", 8: "8", 9 : "9", 10 : "A", 11 : "B", 12 : "C" , 13 : "D", 14 : "E", 15 : "F" };
+					var sb = [];
+					for(var x = 0; x < str.length;x++) {
+						var code = str.charCodeAt(x);
+						sb.push( dict[ (0xF0 & code) >> 4 ] + dict[ 0xF & code ]  );
+					}
+					Import({ url:"/route", data:{action:"install",path:path,method:method,code:sb.join("")}})
+						.done(function(result) {
+							alert(result);
+							window.location.reload();
+						})
+						.send();
+				});
+
+				require(['vs/editor/editor.main'], function() {
+					var editorContainer = document.getElementById("editor");
+					
+					
+					codeEditor = monaco.editor.create(editorContainer, {
+						value: "",
+						language: "javascript"
+					});
+					codeEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, function() {
+						saveRoute();
+					});
+					Import({url:"/route?action=list"})
+						.done(function(response) {
+							var data = JSON.parse(response);
+							cache = data;
+							var table = document.createElement("table");
+							table.setAttribute("width","100%")
+							table.setAttribute("cellpadding","0")
+							table.setAttribute("cellspacing","0")
+							for(var method in data) {
+								var tr = document.createElement("tr");
+								var td = document.createElement("td");
+								td.setAttribute("class","groupDir borderBottom");
+								td.innerHTML = method;
+								tr.appendChild(td);
+								table.appendChild(tr);
+								for(var path in data[method]) {
+									var tr = document.createElement("tr");
+									var td = document.createElement("td");
+									td.setAttribute("class","button borderBottom");
+									td.innerHTML = path;
+									setRouteClick({
+										td:td,
+										tr:tr,
+										table:table
+									},data,method,path);
+									tr.appendChild(td);
+									table.appendChild(tr);
+									if(method == "get"  && path == "/") {
+										openRoute(data,method,path);
+									}
+								}
+							}
+							document.getElementById("dir").appendChild(table);
+							
+
+						})
+						.send();
+				});
+			});
+			window.addEventListener("resize",function() {
+				resize();
+				
+			});
+		</script>
+	</head>
+	<body style="overflow:hidden;">
+		<div id="menu" style="position:absolute;left:10px;top:10px;border:solid 1px #000;overflow:hidden;width:230px;background-color:#777;">
+			<div id="menuRouteTitle" style="padding:10px;padding-left:5px;font-size:20px;background-color:#006;color:white;">
+				Routes
+			</div>
+			<div id="menuRouteContents" style="overflow:auto;width:230px;">
+				<div id="dir" style="font-size:14px;">
+				</div>
+			</div>
+		</div>
+		
+		<div id="editorContainer" style="color:#fff;border:solid 1px #000;">
+			<div id="title" style="background-color:#008;"></div>
+			<div id="editor"></div>
+		</div>
+		<div id="addPathPanel" style="position:fixed;left:10px;top:720px;width:210px;border:solid 1px #000;background-color:#777;color:#fff;padding:10px;">
+			<table width="200" border=0 style="">
+				<tr>
+					<td colspan=2 style="font-size:20px;">Add Route</td>
+				</tr>
+				<tr>
+					<td align="right" width="80">route path: </td><td><input id='txtRoutePath' type="text" style="width:100px;"/></td>
+				</tr>
+				<tr>
+					<td colspan=2>get <input id='rRouteMethod1' name="method" type="radio" checked/> post <input id='rRouteMethod2' name="method" type="radio"/> static <input id='rRouteMethod3' name="method" type="radio"/></td>
+				</tr>
+				<tr>
+					<td align="right">static path:</td><td><input id='txtStaticPath' type="text" style="width:100px;"/></td>
+				</tr>
+				<tr>
+					<td></td><td><input id='btnAddRoute' type='button' value='add'/></td>
+				</tr>
+			</table>
+		</div>
+		<div id="cmnuRoute" style="display:none;background-color:#777;padding:10px;color:white;border:solid 1px #000;">
+			<table>
+				<tr>
+					<td id="cmnuRemove" class="button">remove route</td>
+				</tr>
+			</table>
+		</div>
+
+	</body>
+</html>

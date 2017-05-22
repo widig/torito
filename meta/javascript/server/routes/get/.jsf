@@ -1,0 +1,5 @@
+(function() {
+    return function (req, res) {
+	    res.send( global.fs.readFileSync("./assets/page/torito/route.html","utf8") );	
+    }
+})();

@@ -1,0 +1,136 @@
+(function() {
+    return function (req,res) {
+        if("action" in req.query) {
+            if(req.query.action == "install") {
+                if("path" in req.query && "code" in req.query) {
+                    try {
+                        var data = global.codecs.hex2str( req.query.code );
+                        var method = "get";
+                        if("method" in req.query && req.query.method == "post") method = "post";
+                        if("method" in req.query && req.query.method == "static") method = "static";
+			if(method != "static") {
+				eval("builtin."+method+"[req.query.path] = " + data);
+			} else {
+				data = JSON.parse(data);
+				builtin.static[req.query.path] = data;
+			}
+                        var routes = [];
+                        for(var item in app._router.stack) {
+                            var i = app._router.stack[item];
+                            if(i.route) {
+                                if(i.route.path && i.route.path == req.query.path && i.route.methods[method]) {
+                                    routes.push(i);
+                                }
+                            } else {
+				var path = i.regexp.toString().substring(3);
+				var end2 = "\\/?(?=\\/|$)/i";
+				if(path.substring(path.length-end2.length) == end2 && i.name=="serveStatic") {
+					path = path.substring(0,path.length-end2.length);
+					if(path == req.query.path) {
+						routes.push(i);
+					}
+				}
+			    }
+                        }
+                        for(var r in routes) {
+                            var id = app._router.stack.indexOf(routes[r]);
+                            app._router.stack.splice(id,1);
+                        }
+			if(method == "static") {
+				console.log(">>1>>",req.query.path);
+				var i = builtin.static[req.query.path];
+				app.use(i.path,global.express.static(i.target));
+				console.log(">>2>>",i.path,i.target,req.query.path);
+				global.fs.writeFileSync("./meta/javascript/server/routes/"+method+"/" + req.query.path + ".json",JSON.stringify(data),"utf8");
+			} else {
+				app[method](req.query.path,builtin[method][req.query.path]);
+				global.fs.writeFileSync("./meta/javascript/server/routes/"+method+"/" + req.query.path + ".jsf",data,"utf8");
+			}
+                        res.send(JSON.stringify({result:true}));
+                    } catch(e) {
+                        console.log(e);
+                        console.log(e.stack);
+                        res.send(JSON.stringify({result:false}));
+                    }
+                }
+            } else if(req.query.action == "remove") {
+                if("path" in req.query) {
+                    try {
+                        var method = "get";
+                        if("method" in req.query && req.query.method == "post") method = "post";
+                        if("method" in req.query && req.query.method == "static") method = "static";
+                        var routes = [];
+                        for(var item in app._router.stack) {
+                            var i = app._router.stack[item];
+                            if(i.route) {
+                                if(i.route.path && i.route.path == req.query.path && i.route.methods[method]) {
+                                    routes.push(i);
+                                }
+                            } else {
+				var path = i.regexp.toString().substring(3);
+				var end2 = "\\/?(?=\\/|$)/i";
+				if(path.substring(path.length-end2.length) == end2 && i.name=="serveStatic") {
+					path = path.substring(0,path.length-end2.length);
+					if(path == req.query.path) {
+						routes.push(i);
+					}
+				}
+			    }
+                        }
+                        for(var r in routes) {
+                            var id = app._router.stack.indexOf(routes[r]);
+                            app._router.stack.splice(id,1);
+			    console.log("deleted route");
+                        }
+			if(method == "static") {
+				global.fs.unlinkSync("./meta/javascript/server/routes/static/" + req.query.path + ".json",data,"utf8");
+			} else {
+				global.fs.unlinkSync("./meta/javascript/server/routes/"+method+"/" + req.query.path + ".jsf",data,"utf8");
+			}
+			
+                        res.send(JSON.stringify({result:true}));
+                    } catch(e) {
+                        console.log(e);
+                        console.log(e.stack);
+                        res.send(JSON.stringify({result:false}));
+                    }
+                    
+                }
+            } else if(req.query.action == "list") {
+                try {
+                    var ms = { get : {}, post : {}, static :{} };
+                    for(var item in app._router.stack) {
+                        var i = app._router.stack[item];
+                        if(i.route) {
+                            if(i.route.path && i.route.methods) {
+                                for(var m in i.route.methods) {
+                                    if(m in ms && m in builtin) {
+                                        var code = global.fs.readFileSync("./meta/javascript/server/routes/"+m+"/" + i.route.path + ".jsf","utf8");
+                                        ms[m][i.route.path] = code;
+                                    }
+                                }
+                            }
+                        } else {
+                            var path = i.regexp.toString().substring(3);
+                            var end2 = "\\/?(?=\\/|$)/i";
+                            if(path.substring(path.length-end2.length) == end2 && i.name=="serveStatic") {
+                                
+                                path = path.substring(0,path.length-end2.length);
+				var code = global.fs.readFileSync("./meta/javascript/server/routes/static/"+path + ".json","utf8");
+                                console.log("??",path,code);
+                                ms["static"][ path ] = code;
+				
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.log(e);
+                    console.log(e.stack);
+                }
+                res.send( JSON.stringify(ms) );
+            }
+        } else {
+            res.send( global.fs.readFileSync("./assets/page/torito/route.html","utf8") );
+        }
+    }
+})();

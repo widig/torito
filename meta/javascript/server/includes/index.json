@@ -1,0 +1,7 @@
+{
+	"express" : "express",
+	"fs" : "fs",
+	"vm" : "vm",
+	"util" : "util",
+	"codecs" : "./meta/javascript/server/lib/codecs"
+}

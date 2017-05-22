@@ -1,0 +1,20 @@
+{
+  "name": "torito",
+  "version": "1.0.0",
+  "description": "Another \"Web Manager\" to handle assets.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/widig/torito.git"
+  },
+  "author": "Flavio Kodama",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/widig/torito/issues"
+  },
+  "homepage": "https://github.com/widig/torito#readme",
+  "dependencies": {
+    "express": "^4.15.3"
+  },
+  "devDependencies": {}
+}
