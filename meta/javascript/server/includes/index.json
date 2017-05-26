@@ -3,5 +3,7 @@
 	"fs" : "fs",
 	"vm" : "vm",
 	"util" : "util",
-	"codecs" : "./meta/javascript/server/lib/codecs"
+	"codecs" : "./meta/javascript/server/lib/codecs",
+	"cookie" : "./meta/javascript/server/lib/cookie",
+	"session" : "./meta/javascript/server/lib/session"
 }

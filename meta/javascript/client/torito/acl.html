@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="/load?file=./assets/page/torito/js/import.js"></script>
+		<script src="/load?file=./assets/page/torito/js/querystring.js"></script>
+		
+		<style type="text/css">
+			body {
+				font-family:Tahoma;
+				background-color: #498fff;
+			}
+			.datatable {
+				background-color: #fff;
+				border:solid 1px #000;
+				padding:5px;
+			}
+			.caption {
+				font-size:20px;
+				background-color:black;
+				color:white;
+			}
+		</style>
+		<script>
+			function removeUserSet(target,username) {
+				target.addEventListener("click",function() {
+					if(username == "root") {
+						alert("you can't remove root, for security reasons.");
+						return;
+					}
+					if( confirm("are you sure you want to remove '" + username + "'?") ) {
+						Import({url:"/acl",method:"post",data:{
+							action:"remove",
+							username : username
+						}})
+						.done(function(data) {
+							alert(data);
+							window.location.reload();
+						})
+						.send();
+					}
+				});
+			}
+			window.addEventListener("load",function() {
+				Import({url:"/acl",method:"post",data:{action:"login",username:"root",password:"pass"}})
+					.done(function(data) {
+						//alert(data);
+						data = JSON.parse(data);
+						if(data.result) {
+							Import({url:"/acl",method:"post",data:{action:"list"}})
+							.done(function(data) {
+								data = JSON.parse(data);
+								var dir = document.getElementById("dir");
+								dir.innerHTML = "";
+								var table = document.createElement("table");
+								table.setAttribute("border","1");
+								table.setAttribute("width","300");
+								table.setAttribute("class","datatable");
+								
+								var tr = document.createElement("tr");
+								var td = document.createElement("td");
+								td.setAttribute("class","caption");
+								td.innerHTML = "username";
+								tr.appendChild(td);
+								
+								var td = document.createElement("td");
+								td.setAttribute("class","caption");
+								td.innerHTML = "password";
+								tr.appendChild(td);
+								
+								var td = document.createElement("td");
+								td.setAttribute("class","caption");
+								td.innerHTML = "level";
+								tr.appendChild(td);
+								
+								table.appendChild(tr);
+									
+								for(var user in data.users) {
+									var tr = document.createElement("tr");
+									var td = document.createElement("td");
+									td.innerHTML = user;
+									tr.appendChild(td);
+									
+									var td = document.createElement("td");
+									td.innerHTML = data.users[user].password;
+									tr.appendChild(td);
+									
+									var td = document.createElement("td");
+									td.innerHTML = data.users[user].level;
+									tr.appendChild(td);
+									
+									var td = document.createElement("td");
+									td.innerHTML = "remove";
+									removeUserSet(td,user);
+									tr.appendChild(td);
+									
+									table.appendChild(tr);
+								}
+								dir.appendChild(table);
+								
+							})
+							.send();
+						}
+						
+					})
+					.send();
+				document.getElementById("frmNewUser_btnCreate").addEventListener("click",function() {
+					Import({url:"/acl",method:"post",data:{
+						action:"register",
+						username : document.getElementById("frmNewUser_txtUsername").value,
+						password : document.getElementById("frmNewUser_txtPassword").value,
+						level : document.getElementById("frmNewUser_txtLevel").value
+					}})
+					.done(function(data) {
+						window.location.reload();
+					})
+					.send();
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="top" style="">
+			<table width="100%" style="background-color:transparent;border:none;">
+				<tr>
+					<td align="left">
+						<img src="assets/page/torito/img/icon.png" width="64"/>
+					</td>
+					<td align="center" style="font-size:22px;">
+					[ <a href="/route">routes</a> ] [ <a href="/logout">logout</a> ]
+					</td>
+					<td align="right">
+						
+					</td>
+				</tr>
+			</table>
+			
+		</div>
+		<div>
+			<div style="font-size:30px;">
+				Users
+			</div>
+			<div id="dir">
+			
+			</div>
+		</div>
+		<div>
+			<div style="font-size:30px;">
+				New User
+			</div>
+			<table class="datatable">
+				<tr>
+					<td>Username:</td>
+					<td><input id="frmNewUser_txtUsername" type="text"/></td>
+				</tr>
+				<tr>
+					<td>Password:</td>
+					<td><input id="frmNewUser_txtPassword" type="text"/></td>
+				</tr>
+				<tr>
+					<td>Level:</td>
+					<td><input id="frmNewUser_txtLevel" type="text" value="0"/></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td><input id="frmNewUser_btnCreate" type="button" value="create"/></td>
+				</tr>
+			</table>
+		</div>
+	
+	</body>
+</html>

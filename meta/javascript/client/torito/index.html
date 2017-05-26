@@ -1,25 +1,74 @@
 <!doctype html>
 <html>
 	<head>
-		<script src="/load?file=./assets/page/torito/js/import.js"></script>
-		<script src="/load?file=./assets/page/torito/js/querystring.js"></script>
-		
-		<link data-name="vs/editor/editor.main" rel="stylesheet" href="/assets/control/monaco/dev/vs/editor/editor.main.css">
-		<script type="text/javascript" src="/assets/control/jquery/1.9.1/jquery.min.js"></script>
-		<script type="text/javascript" src="/assets/control/bootstrap/2.3.1/bootstrap.min.js"></script>
-		<script>var require = { paths: { 'vs': '/assets/control/monaco/dev/vs' } };</script>
-		<script src="/assets/control/monaco/dev/vs/loader.js"></script>
 		<style>
+			body,
+			html {
+				margin: 0px;
+				padding: 0px;
+				height: 100%;
+			}
+			body.menuActivated {
+				overflow: hidden;
+			}
+			.container {
+				position:absolute;
+				left:0px;
+				top:0px;
+				height:100%;
+				transition: transform .3s;
+				-webkit-transition: -webkit-transform .3s;
+			}
+			.container.menuActivated {
+				-webkit-transform: translateX(200px);
+				-ms-transform: translateX(200px);
+				transform: translateX(200px)
+			}
+			.menu {
+				position:fixed;
+				top: 0px;
+				left: 0px;
+				width:200px;
+				height:100%;
+				overflow-y:auto;
+				transition: transform .3s;
+				-webkit-transition: -webkit-transform .3s;
+				-webkit-transform: translateX(-100%);
+				-ms-transform: translateX(-100%);
+				transform: translateX(-100%)
+			}
+			.menu.menuActivated {
+				-webkit-transform: translateX(0);
+				-ms-transform: translateX(0);
+				transform: translateX(0);
+			}
+			.mask {
+				position: fixed;
+				overflow: hidden;
+				z-index:1000;
+				left:0px;
+				top:0px;
+				width:0px;
+				height:0px;
+				opacity:0.0;
+				background-color:black;
+				-webkit-transition: left .3s;
+				transition: left .3s;
+			}
+			.mask.menuActivated {
+				left: 200px;
+				width : 100%;
+				height : 100%;
+				opacity: 0.5;
+			}
+		    
 			body {
 				font-family:Tahoma;
 				background-color: #498fff;
+				color:black;
 			}
-			a:link, a:visited, a:hover, a:active {
-				background-color : #333;
-				color: #fff;
-				text-decoration:none;
-			}
-		  	.button, .button:link, .button:visited, .button:active {
+
+			.button, .button:link, .button:visited, .button:active {
 				background-color : #888;
 				color: #fff;
 				text-decoration:none;
@@ -46,10 +95,79 @@
 				font-size:20px;
 				font-weight:bold;
 			}
+			#menuRoutes {
+				position:absolute;
+				left:10px;
+				top:70px;
+				border:solid 1px #000;
+				overflow:hidden;
+				width:230px;
+				background-color:#777;
+			}
+			#menuRoutesTitle {
+				padding:10px;
+				padding-left:5px;
+				font-size:20px;
+				background-color:#006;
+				color:white;
+			}
+			#menuRoutesContents {
+				overflow:auto;
+				width:230px;
+			}
+			#containerRoutesEditor {
+				color:#fff;
+				border:solid 1px #000;
+			}
+			#panelAddRoute{
+				position:fixed;
+				left:10px;
+				top:720px;
+				width:210px;
+				border:solid 1px #000;
+				background-color:#777;
+				color:#fff;
+				padding:10px;
+			}
+			#contextRoute {
+				width:200px;
+				background-color:#777;
+				padding:0px;
+				color:white;
+				border:solid 1px #000;
+			}
+		</style>
+		<script src="/load?file=./assets/page/torito/js/import.js"></script>
+		<script src="/load?file=./assets/page/torito/js/querystring.js"></script>
+		
+		<link data-name="vs/editor/editor.main" rel="stylesheet" href="/assets/control/monaco/dev/vs/editor/editor.main.css">
+		<script type="text/javascript" src="/assets/control/jquery/1.9.1/jquery.min.js"></script>
+		<script type="text/javascript" src="/assets/control/bootstrap/2.3.1/bootstrap.min.js"></script>
+		<script>var require = { paths: { 'vs': '/assets/control/monaco/dev/vs' } };</script>
+		<script src="/assets/control/monaco/dev/vs/loader.js"></script>
+		<style>
+			
 		  
 		</style>
 
 		<script>
+
+			function menu() {}
+			menu.prototype.open = function() {
+				document.getElementById("mask").classList.add("menuActivated");
+				document.getElementById("globalMenu").classList.add("menuActivated");
+				document.getElementById("container").classList.add("menuActivated");
+				document.body.classList.add("menuActivated");
+			}
+			menu.prototype.close = function() {
+				document.getElementById("mask").classList.remove("menuActivated");
+				document.getElementById("globalMenu").classList.remove("menuActivated");
+				document.getElementById("container").classList.remove("menuActivated");
+				setTimeout(function() {
+				    document.body.classList.remove("menuActivated");
+				},400);
+			}
+			
 			var cache = {};
 			var selected = {};
 			var codeEditor = null;
@@ -62,7 +180,7 @@
 						var code = str.charCodeAt(x);
 						sb.push( dict[ (0xF0 & code) >> 4 ] + dict[ 0xF & code ]  );
 					}
-					Import({url:"/route",data:{action:"install",method:selected.method,path:selected.path,code:sb.join("")}})
+					Import({url:"/route",method:"post",data:{action:"install",method:selected.method,path:selected.path,code:sb.join("")}})
 						.done(function(data) {
 							alert(data);
 							
@@ -90,7 +208,9 @@
 				});
 				target.td.addEventListener("mouseup",function(event) {
 					if(event.button == 2) {
-						var obj = document.getElementById("cmnuRoute");
+						
+						var obj = document.getElementById("contextRoute");
+						//alert(obj);
 						selected.data = data;
 						selected.method = method;
 						selected.path = path;
@@ -98,6 +218,7 @@
 						obj.style.position = "absolute";
 						obj.style.left = (mousePos.x-1) + "px";
 						obj.style.top = (mousePos.y-1) + "px";
+						obj.style.display = "none";
 						obj.style.display = "";
 						cancelCmnu = 1;
 						obj.addEventListener("mouseleave",function() {
@@ -110,11 +231,11 @@
 			function deleteRoute() {
 				var path = selected.path;
 				var method = selected.method;
-				if(path == "/" || path == "/route" || path == "/load") {
+				if(path == "/" || path == "/route" || path == "/load" || path =="/login" || path == "/logout" || path == "/acl" || path == "/assets") {
 					alert("you can't delete route '"+path+"'. it's native.");
 				} else {
 					if( confirm("are you sure to remove '" + path + "'?") ) {
-						Import({url:"/route",data: { action:"remove",path:path,method:method}})
+						Import({url:"/route",method:"post",data: { action:"remove",path:path,method:method}})
 							.done(function(result) {
 								// remove button
 								selected.target.tr.removeChild( selected.target.td );
@@ -129,18 +250,18 @@
 			}
 			
 			function resize() {
-				var menu = document.getElementById("menu");
-				menu.style.height = (window.innerHeight-20-170) + "px";
-				var menuRouteContents = document.getElementById("menuRouteContents");
-				menuRouteContents.style.overflow = "auto";
-				menuRouteContents.style.height = (window.innerHeight-65-170) + "px";
+				var menuRoutes = document.getElementById("menuRoutes");
+				menuRoutes.style.height = (window.innerHeight-20-170-60) + "px";
+				var menuRoutesContents = document.getElementById("menuRoutesContents");
+				menuRoutesContents.style.overflow = "auto";
+				menuRoutesContents.style.height = (window.innerHeight-65-170-60) + "px";
 				
-				var editorContainer = document.getElementById("editorContainer");
-				editorContainer.style.position = "absolute";
-				editorContainer.style.left = "250px";
-				editorContainer.style.top = "10px";
-				editorContainer.style.width = (window.innerWidth - 260) + "px";
-				editorContainer.style.height = (window.innerHeight - 20) + "px";
+				var containerRoutesEditor = document.getElementById("containerRoutesEditor");
+				containerRoutesEditor.style.position = "absolute";
+				containerRoutesEditor.style.left = "250px";
+				containerRoutesEditor.style.top = "70px";
+				containerRoutesEditor.style.width = (window.innerWidth - 260) + "px";
+				containerRoutesEditor.style.height = (window.innerHeight - 20-70) + "px";
 				
 				var titleHeight = 25;
 				var title = document.getElementById("title");
@@ -161,10 +282,10 @@
 				editor.style.left = "0px";
 				editor.style.top = titleHeight+20 + "px";
 				editor.style.width = (window.innerWidth - 260)  + "px";
-				editor.style.height = (window.innerHeight - 40 - titleHeight) + "px";
+				editor.style.height = (window.innerHeight - 40 - titleHeight-70) + "px";
 				
-				var addPathPanel = document.getElementById("addPathPanel");
-				addPathPanel.style.top = (window.innerHeight - 175) + "px";
+				var panelAddRoute = document.getElementById("panelAddRoute");
+				panelAddRoute.style.top = (window.innerHeight - 175) + "px";
 				
 				if(codeEditor) {
 					codeEditor.layout();
@@ -202,19 +323,24 @@
 					};
 				}
 				document.onmousemove = handleMouseMove;
+				
+				
+				
+				var _menu = new menu();
+				document.getElementById("btnMenu").addEventListener("click",function() {
+				    _menu.open();
+				});
+				document.getElementById("mask").addEventListener("click",function() {
+				    _menu.close();
+				});
 
 
-				document.getElementById("cmnuRemove").addEventListener("click",function(){
-					var obj = document.getElementById("cmnuRoute");
+				document.getElementById("contextRouteRemove").addEventListener("click",function(){
+					var obj = document.getElementById("contextRoute");
 					obj.style.display = "none";
 					deleteRoute();
 				});
-
-				var title = document.getElementById("title");
 				
-
-				
-
 				document.getElementById("btnAddRoute").addEventListener("click",function() {
 					var path = document.getElementById("txtRoutePath").value;
 					var code = "(function(){\r\n\treturn function(req,res){ res.send(\""+path+"\");};\r\n})();";
@@ -234,7 +360,7 @@
 						var code = str.charCodeAt(x);
 						sb.push( dict[ (0xF0 & code) >> 4 ] + dict[ 0xF & code ]  );
 					}
-					Import({ url:"/route", data:{action:"install",path:path,method:method,code:sb.join("")}})
+					Import({ url:"/route", method:"post",data:{action:"install",path:path,method:method,code:sb.join("")}})
 						.done(function(result) {
 							alert(result);
 							window.location.reload();
@@ -253,7 +379,7 @@
 					codeEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, function() {
 						saveRoute();
 					});
-					Import({url:"/route?action=list"})
+					Import({url:"/route",data:{"action":"list"},method:"post"})
 						.done(function(response) {
 							var data = JSON.parse(response);
 							cache = data;
@@ -299,46 +425,81 @@
 		</script>
 	</head>
 	<body style="overflow:hidden;">
-		<div id="menu" style="position:absolute;left:10px;top:10px;border:solid 1px #000;overflow:hidden;width:230px;background-color:#777;">
-			<div id="menuRouteTitle" style="padding:10px;padding-left:5px;font-size:20px;background-color:#006;color:white;">
-				Routes
+		<div id="container" class="container">
+			<div id="top" style="">
+				<table width="100%">
+					<tr>
+						<td align="left">
+							<img id="btnMenu" src="assets/page/torito/img/icon.png" width="64"/>
+						</td>
+						<td align="center">
+						</td>
+						<td align="right">
+						</td>
+					</tr>
+				</table>
 			</div>
-			<div id="menuRouteContents" style="overflow:auto;width:230px;">
-				<div id="dir" style="font-size:14px;">
+			<div id="menuRoutes">
+				<div id="menuRoutesTitle">
+					Routes
+				</div>
+				<div id="menuRoutesContents">
+					<div id="dir" style="font-size:14px;">
+					</div>
 				</div>
 			</div>
+			<div id="containerRoutesEditor">
+				<div id="title" style="background-color:#008;"></div>
+				<div id="editor"></div>
+			</div>
+			<div id="panelAddRoute">
+				<table width="200" border=0 style="">
+					<tr>
+						<td colspan=2 style="font-size:20px;">Add Route</td>
+					</tr>
+					<tr>
+						<td align="right" width="80">route path: </td><td><input id='txtRoutePath' type="text" style="width:100px;"/></td>
+					</tr>
+					<tr>
+						<td colspan=2>get <input id='rRouteMethod1' name="method" type="radio" checked/> post <input id='rRouteMethod2' name="method" type="radio"/> static <input id='rRouteMethod3' name="method" type="radio"/></td>
+					</tr>
+					<tr>
+						<td align="right">static path:</td><td><input id='txtStaticPath' type="text" style="width:100px;"/></td>
+					</tr>
+					<tr>
+						<td></td><td><input id='btnAddRoute' type='button' value='add'/></td>
+					</tr>
+				</table>
+			</div>
+			<div id="contextRoute" style="display:none;">
+				<table width="100%">
+					<tr>
+						<td id="contextRouteRemove" class="button">remove route</td>
+					</tr>
+				</table>
+			</div>
+			
+		</div>
+		<div id="mask" class="mask"></div>
+		<div id="globalMenu" class="menu" style="font-size:20px;text-align:right;">
+			<div style="padding:20px;">
+			    <table style="float:right;">
+				<tr>
+					<td align="right">Files</td>
+				</tr>
+				<tr>
+					<td align="right">Routes</td>
+				</tr>
+				<tr>
+					<td align="right">[ <a href="/acl">Accounts</a> ]</td>
+				</tr>
+				<tr>
+					<td align="right">[ <a href="/logout">logout</a> ]</td>
+				</tr>
+				
+			    </table>
+		    </div>
 		</div>
 		
-		<div id="editorContainer" style="color:#fff;border:solid 1px #000;">
-			<div id="title" style="background-color:#008;"></div>
-			<div id="editor"></div>
-		</div>
-		<div id="addPathPanel" style="position:fixed;left:10px;top:720px;width:210px;border:solid 1px #000;background-color:#777;color:#fff;padding:10px;">
-			<table width="200" border=0 style="">
-				<tr>
-					<td colspan=2 style="font-size:20px;">Add Route</td>
-				</tr>
-				<tr>
-					<td align="right" width="80">route path: </td><td><input id='txtRoutePath' type="text" style="width:100px;"/></td>
-				</tr>
-				<tr>
-					<td colspan=2>get <input id='rRouteMethod1' name="method" type="radio" checked/> post <input id='rRouteMethod2' name="method" type="radio"/> static <input id='rRouteMethod3' name="method" type="radio"/></td>
-				</tr>
-				<tr>
-					<td align="right">static path:</td><td><input id='txtStaticPath' type="text" style="width:100px;"/></td>
-				</tr>
-				<tr>
-					<td></td><td><input id='btnAddRoute' type='button' value='add'/></td>
-				</tr>
-			</table>
-		</div>
-		<div id="cmnuRoute" style="display:none;background-color:#777;padding:10px;color:white;border:solid 1px #000;">
-			<table>
-				<tr>
-					<td id="cmnuRemove" class="button">remove route</td>
-				</tr>
-			</table>
-		</div>
-
 	</body>
 </html>

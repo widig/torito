@@ -3,6 +3,7 @@
         if("file" in req.query) {
             var sb = [];
             var filename = escape(req.query.file);
+            var forbidden = [["index.js","meta"]];
             if(filename.indexOf("./")==0) {
                 var parts = filename.split("/");
                 var current_path = ".";
@@ -17,9 +18,19 @@
                         res.end();
                         return;
                     }
+                    if(!req.session.logged || req.session.level!=0) {
+                        if(x <= forbidden.length) {
+                            for(var y = 0; y < forbidden[x-1].length;y++) {
+                                if(parts[x] == forbidden[x-1][y]) {
+                                    res.status(404).send("Sorry can't find that! Broken link. (*)");
+                                    res.end();
+                                    return; 
+                                }
+                            }
+                        }
+                    }
                     var link_file = current_path + "/" + parts[x] + ".link";
-
-                    if( global.fs.existsSync( link_file ) ) {
+                    if( req.session.logged && global.fs.existsSync( link_file ) ) {
                         var json = JSON.parse( global.fs.readFileSync( link_file, "utf8" ) );
                         if("path" in json) {
                             current_path = json.path;
@@ -33,6 +44,9 @@
                     }
                     if(x == parts.length-1) {
                         var filename2 = unescape(current_path);
+                        // test if file is protected by login
+
+
                         if( global.fs.existsSync(filename2) ) {
                             var ext = filename2.split(".").pop();
                             if( ext == "mp3" || ext == "mp4" || ext == "avi" || ext == "mpeg" || ext == "wav" || ext == "mp4" || ext == "jpg" || ext == "gif" || ext == "jpeg" || ext == "png") {
