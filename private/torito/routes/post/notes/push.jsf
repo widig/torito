@@ -1,0 +1,166 @@
+(function() {
+    return function (req,res) {
+        var body = [];
+        req.on('data', function (data) {
+            if(!(req.session.logged)) {
+                req.connection.destroy();
+                return;
+            }
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.join("").length > 1e6) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var qs = require('querystring');
+            var post = qs.parse(body.join(""));
+            var ret = [];
+
+            target = ["session","notes"];
+            var p = req;
+            for(var x = 0; x < target.length;x++) {
+                if(target[x] in p) {
+                    p = p[target[x]];
+                } else {
+                    p[target[x]] = {};
+                    p = p[target[x]];
+                }
+            }
+            target = p;
+
+            
+            if(!("id" in post)) {
+                res.json({result : false, msg:"A"});
+                res.end();
+                return;
+            }
+            if(!("message" in post)) {
+                res.json({result : false, msg:"B"});
+                res.end();
+                return;
+            } else {
+                // prepare post.message
+                post.message = mod.codecs.hex2str( post.message );
+                
+                var raw = post.message; // used to hold value
+
+                post.message = post.message // used to hold presentation
+                    .split("&").join("&amp;")
+                    .split(";").join("&semi;")
+                    .split("<").join("&lt;")
+                    .split(">").join("&gt;")
+                    .split("#").join("&num;")
+                    .split(":").join("&colon;")
+                    .split(",").join("&comma;")
+                    .split(".").join("&period;")
+                    .split("=").join("&equals;")
+                    .split("?").join("&quest;")
+                    .split("(").join("&lpar;")
+                    .split(")").join("&rpar;")
+                    .split("+").join("&plus;")
+                    .split("$").join("&dollar;")
+                    .split("\"").join("&quot;")
+                    .split("'").join("&apos;")
+                    .split("[").join("&lbrack;")
+                    .split("]").join("&rbrack;")
+                    .split("{").join("&lbrace;")
+                    .split("}").join("&rbrace;")
+                    .split("|").join("&vert;")
+                    .split("*").join("&ast;")
+                    .split("!").join("&excl;")
+                    ;
+                post.message = "<pre>" + post.message.split("\r").join("").split("\n").join("<br/>").split("\t").join("&nbsp;&nbsp;&nbsp;&nbsp;") + "</pre>";
+                
+            }
+            if(!( post.id in target)) {
+                res.json({result:false, msg : "C"});
+                res.end();
+                return;
+            }
+            if(!("root" in target[post.id])) {
+                res.json({result:false, msg : "D"});
+                res.end();
+                return;
+            }
+            var base = target[post.id];
+
+            if("path" in post) {
+                try {
+                    post.path = JSON.parse(post.path);
+                    if( Object.prototype.toString.apply(post.path) == "[object Array]") {
+                        var check = true;
+                        for(var x = 0; x < post.path.length;x++) {
+                            if( Object.prototype.toString.apply(post.path[x]) != "[object Number]") {
+                                check = false;
+                            }
+                        }
+                        if(check) {
+                            var p = target[post.id].root;
+                            var n = post.path.shift();
+                            if(n < p.length) {
+                                p = p[ n ];
+                            } else {
+                                res.json({result:false});
+                                res.end();
+                                return;
+                            }
+                            for(var x = 0; x < post.path.length;x++) {
+                                n = post.path[x];
+                                if( n < p.replies.length) {
+                                    p = p.replies[n];
+                                } else {
+                                    res.json({result:false});
+                                    res.end();
+                                    return;
+                                }
+                            }
+                            p.replies.push({
+                                user : req.session.username,
+                                note : post.id,
+                                date : new Date(),
+                                enabled : true,
+                                message : {
+                                    type : "txt",
+                                    value : post.message
+                                },
+                                replies : []
+                            });
+                            base.version += 1;
+                            base.save();
+                            res.json({result : true});
+                            res.end();
+                            return;
+                        } else {
+                            res.json({result:false});
+                            res.end();
+                            return;
+                        }
+                    }
+
+                } catch(e) {
+                    res.json({result:false});
+                    res.end();
+                    return;
+                }
+            } else {
+                target[post.id].root.push({
+                    user : req.session.username,
+                    note : post.id, 
+                    date : new Date(),
+                    enabled : true,
+                    message : {
+                        type : "txt",
+                        value : post.message
+                    },
+                    replies : []
+                });
+                base.version += 1;
+                base.save();
+                res.json({result : true });
+                res.end();
+                return;
+            }
+
+        });
+    };
+})();

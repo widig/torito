@@ -1,0 +1,7 @@
+(function(){
+	return function(req,res){ 
+        res.send(mod.fs.readFileSync(mod.torito.paths.clientPublic + "/login.html","utf8"));
+        res.end();
+        return;
+    };
+})();

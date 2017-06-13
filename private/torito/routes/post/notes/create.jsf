@@ -1,0 +1,160 @@
+(function() {
+    return function (req,res) {
+        var body = [];
+        req.on('data', function (data) {
+            if(!(req.session.logged)) {
+                req.connection.destroy();
+                return;
+            }
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.join("").length > 1e6) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var qs = require('querystring');
+            var post = qs.parse(body.join(""));
+
+            target = ["session","notes"];
+            var p = req;
+            for(var x = 0; x < target.length;x++) {
+                if(target[x] in p) {
+                    p = p[target[x]];
+                } else {
+                    p[target[x]] = {};
+                    p = p[target[x]];
+                }
+            }
+            target = p;
+            for(var key in target) {
+                if( target[key].reference == post.reference ) {
+                    res.json({result:true, id: target[key].id });
+                    res.end();
+                    return;
+                }
+            }
+            if("title" in post && "reference" in post) {
+                var obj = {
+                    title : post.title,
+                    reference : post.reference,
+                    root : [],
+                    version : 0
+                };
+                if(post.title == "file") {
+                    // check if do not contains .. 
+
+                    // check if file exists
+                    if( mod.fs.lstatSync(obj.reference).isFile() ) {
+                        // set save
+                        if(obj.reference.charAt(0)!=".") {
+                            res.json({result : false});
+                            res.end();
+                            return;
+                        }
+                        var _ref = obj.reference.substring(1);
+                        var npath = mod.torito.paths.server.notes + _ref;
+                        
+                        npath = npath.split("/");
+                        var folders = [];
+                        for(var x = 0; x < npath.length;x++) {
+                            // check if directory exists
+                            var n2path = [];
+                            for(var y = 0; y <= x;y++) {
+                                n2path.push(npath[y]);
+                            }
+                            n2path = n2path.join("/");
+                            if( mod.fs.existsSync(n2path) ) {
+                                if( mod.fs.lstatSync(n2path).isDirectory() ) {
+                                    // ok
+                                } else {
+                                    // backtrack folders created
+                                    for(var z = 0; z < folders.length;z++) {
+                                        mod.fs.rmdirSync(folders[z]);
+                                    }
+                                    res.json({result:false});
+                                    res.end();
+                                    return;
+                                    // fail (critical to notes)
+                                }
+                            } else {
+                                console.log("create directory",n2path);
+                                mod.fs.mkdirSync(n2path);
+                                folders.push(n2path);
+                                // create directory
+                            }
+                        }
+
+                        npath.push("index.json");
+                        var filename = npath.join("/");
+                        // check if file exists
+                        
+                        obj.save = function() {
+                            var nobj = {
+                                title: obj.title,
+                                reference : obj.reference,
+                                root : obj.root,
+                                version : obj.version,
+                                id : obj.id
+                            };
+                            var fileData = JSON.stringify(nobj);
+                            try {
+                                mod.fs.writeFileSync(filename,fileData,"utf8");
+                                return true;
+                            }catch(e) {
+                                return false;
+                            }
+                        }
+                        if(mod.fs.existsSync(filename)) {
+                            if( mod.fs.lstatSync(filename).isFile() ) {
+                                console.log("LOADING from file");
+                                var str_file = mod.fs.readFileSync(filename,"utf8");
+                                var _obj = JSON.parse(str_file);
+
+                                obj.id = _obj.id;
+                                obj.root = _obj.root;
+                                obj.version = _obj.version;
+
+                                if(obj.id in target) {
+                                    res.json({result:false});
+                                    res.end();
+                                    return;
+                                } else {
+                                    console.log("OK");
+                                    target[obj.id] = obj;
+                                    res.json({result:true, id: obj.id});
+                                    res.end();
+                                    return;
+                                }
+                            }
+                        }
+                    } else {
+                        res.json({result:false});
+                        res.end();
+                        return;
+                    }
+                }
+                function guid() {
+                    function s4() {
+                        return Math.floor((1 + Math.random()) * 0x10000) .toString(16) .substring(1);
+                    }
+                    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +  s4() + '-' + s4() + s4() + s4();
+                }
+                var id = guid();
+                while (id in target) {
+                    id = guid();
+                }
+                obj.id = id;
+                target[id] = obj;
+                
+                res.json({result:true, id: id});
+                res.end();
+                return;
+
+            } else {
+                res.json({result : false});
+                res.end();
+                return;
+            }
+        });
+    };
+})();

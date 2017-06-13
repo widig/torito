@@ -1,17 +1,24 @@
-var global = {};
 
-var toInclude = JSON.parse( require("fs").readFileSync("./meta/javascript/server/includes/index.json","utf8") );
+
+mod = {};
+// load paths
+mod.torito = {
+	paths : require("./paths.js")
+};
+
+var toInclude = JSON.parse( require("fs").readFileSync(mod.torito.paths.server.includes + "/index.json","utf8") );
 for(i in toInclude) {
 	console.log("[["+i+"]]");
-	global[i] = require(toInclude[i]);
+	mod[i] = require(toInclude[i]);
 }
 
-var routesDirectory = { get : "./meta/javascript/server/routes/get", post : "./meta/javascript/server/routes/post", static : "./meta/javascript/server/routes/static" };
+
+var routesDirectory = { get : mod.torito.paths.server.routes.get, post : mod.torito.paths.server.routes.post, static : mod.torito.paths.server.routes.static };
 
 var serverPort = 3001;
-app = global.express();
-global.app = app;
-global.session.reset();
+app = mod.express();
+mod.app = app;
+mod.session.reset();
 
 function guid() {
 	function s4() {
@@ -22,19 +29,21 @@ function guid() {
 
 app.use(function (req, res, next) {
 	console.log("------------------------------------------------------------------------------------------------");
-	console.log('Request URL:', req.originalUrl);
-	console.log('Request Type:', req.method);
-	console.log('Request Params:', req.params);
-	console.log('Request Query:', req.query);
+	console.log('Request URL:', req.originalUrl,'Request Type:', req.method,'Request Params:', req.params,'Request Query:', req.query);
 	console.log("------------------------------------------------------------------------------------------------");
-	
+	mod.session.print();
 	var found = false;
+	//console.log(req.headers);
 	if("cookie" in req.headers) {
-		req.cookies = global.cookie.parse(req.headers.cookie);
+		console.log("req.headers.cookie:",req.headers.cookie);
+		req.cookies = mod.cookie.parse(req.headers.cookie);
+		console.log("req.cookies:",req.cookies);
 		if("session" in req.cookies) {
-			var data = global.session.get( req.cookies.session );
+			var data = mod.session.get( req.cookies.session );
 			if(data != null) {
 				req.session = data;
+				req.session.id = req.cookies.session;
+				console.log("SESSION:",req.session.id);
 				data.date = new Date();
 				found = true;
 			}
@@ -44,7 +53,7 @@ app.use(function (req, res, next) {
 		// find a available id
 		var id = guid();
 		while(true) {
-			var data = global.session.get( id );
+			var data = mod.session.get( id );
 			if(data != null) {
 				id = guid();
 			} else {
@@ -53,11 +62,25 @@ app.use(function (req, res, next) {
 		}
 		// create a new session
 		var session = {
+			id : id,
 			logged : false,
 			date : new Date()
 		};
-		global.session.set(id,session);
-		res.setHeader('Set-Cookie', global.cookie.serialize("session",id));
+		console.log("NEW SESSION:",id);
+		var d1 = new Date (),
+		d2 = new Date ( d1 );
+		d2.setMinutes ( d1.getMinutes() + 60*24*365 );
+		var d0 = new Date(0);
+		mod.session.set(id,session);
+		var cookie_str = mod.cookie.serialize("session",id,{
+			httpOnly : true,
+			path : "/",
+			expires : d2,
+			sameSite : true,
+			SameSite : "strict"
+		});
+		console.log("cookie:",cookie_str);
+		res.setHeader('Set-Cookie', cookie_str);
 		req.session = session;
 	}
 	next();
@@ -74,10 +97,10 @@ var builtin = {
 
 function readdirrecSync(dir,top) {
 	top = top || "";
-	var files = global.fs.readdirSync(dir);
+	var files = mod.fs.readdirSync(dir);
 	var ret = [];
 	for(var x in files) {
-		if( global.fs.lstatSync(dir + "/" + files[x]).isDirectory() ) {
+		if( mod.fs.lstatSync(dir + "/" + files[x]).isDirectory() ) {
 			var r = readdirrecSync(dir + "/" + files[x],files[x] + "/");
 			ret = ret.concat(r);
 		} else {
@@ -100,16 +123,17 @@ for(var dir in routesDirectory) {
 				}
 				name = names.join("/");
 				try {
-					eval("builtin."+dir+"[ \"/\" + name ] = " + global.fs.readFileSync(routesDirectory[dir] + "/"+arrv[file],"utf8"));
+					eval("builtin."+dir+"[ \"/\" + name ] = " + mod.fs.readFileSync(routesDirectory[dir] + "/"+arrv[file],"utf8"));
 				} catch(e) {
-					console.log( global.fs.readFileSync(routesDirectory[dir] + "/"+arrv[file],"utf8") );
+					console.log( mod.fs.readFileSync(routesDirectory[dir] + "/"+arrv[file],"utf8") );
 					console.log("[["+e+"]]");
 				}
 			}
 		} else if(dir == "static") {
 			if( arrv[file].lastIndexOf(".json") == arrv[file].length-5 ) {
+				console.log(arrv[file]);
 				var name = arrv[file].substring(0,arrv[file].length-5);
-				var data = global.fs.readFileSync(routesDirectory[dir] + "/"+arrv[file],"utf8");
+				var data = mod.fs.readFileSync(routesDirectory[dir] + "/"+arrv[file],"utf8");
 				var json = JSON.parse(data);
 				builtin.static[json.path] = json;
 				//json.path,json.target
@@ -118,16 +142,18 @@ for(var dir in routesDirectory) {
 	}
 	if(dir == "get" || dir == "post") {
 		for(var r in builtin[dir]) {
+			console.log(dir + ":" + r);
 			app[dir](r,builtin[dir][r]);
 		}
 	} else if(dir == "static") {
 		for(var r in builtin[dir]) {
 			var i = builtin[dir][r];
-			app.use(i.path,global.express.static(i.target));
+			console.log(dir + ":" + i.path);
+			app.use(i.path,mod.express.static(i.target));
 		}
 	}
 }
 
-app.listen(serverPort,function() {
+app.listen(serverPort, "127.0.0.1",function() {
 	console.log("server at "+serverPort+"!");
 });

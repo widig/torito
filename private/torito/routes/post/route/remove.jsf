@@ -1,0 +1,110 @@
+(function(){
+    
+	return function(req,res){ 
+	    var body = [];
+        req.on('data', function (data) {
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.join("").length > 1e2) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var qs = require('querystring');
+            var post = qs.parse(body.join(""));
+            if(!(req.session.logged && req.session.level == 0)) {
+                res.json({result:false,msg:"not logged."});
+                res.end();
+                return;
+            }
+            if(!("path" in post)) {
+                res.json({result:false});
+                res.end();
+                return;
+            }
+            // an interface goes here to select protection
+            var _protected = [
+                "/acl/changepassword",
+                "/acl/changeusername",
+                "/acl/list",
+                "/acl/login",
+                "/acl/logout",
+                "/acl/ping",
+                "/acl/register",
+                "/acl/remove",
+                "/file/dir",
+                "/file/mkdir",
+                "/file/rm",
+                "/file/rmdir",
+                "/file/touch",
+                "/file/update",
+                "/route/install",
+                "/route/remove",
+                "/route/list",
+                "/session/list",
+                "/session/ownlevel",
+                "/session/ownname",
+                "/session/remove",
+                "/public",
+                "/load",
+                "/login",
+                "/logout",
+                "/"
+            ];
+            if(_protected.indexOf( post.path) !=-1) {
+                res.json({result:false});
+                res.end();
+                return;
+            }
+            if("path" in post) {
+                try {
+                    var method = "get";
+                    if("method" in post && post.method == "post") method = "post";
+                    if("method" in post && post.method == "static") method = "static";
+                    var routes = [];
+                    for(var item in app._router.stack) {
+                        var i = app._router.stack[item];
+                        if(i.route) {
+                            if(i.route.path && i.route.path == post.path && i.route.methods[method]) {
+                                routes.push(i);
+                            }
+                        } else {
+                            var path = i.regexp.toString().substring(3);
+                            var end2 = "\\/?(?=\\/|$)/i";
+                            if(path.substring(path.length-end2.length) == end2 && i.name=="serveStatic") {
+                                path = path.substring(0,path.length-end2.length);
+                                if(path == post.path) {
+                                    routes.push(i);
+                                }
+                            }
+                        }
+                    }
+                    for(var r in routes) {
+                        var id = app._router.stack.indexOf(routes[r]);
+                        app._router.stack.splice(id,1);
+                        console.log("deleted route");
+                    }
+                    if(method == "static") {
+                        mod.fs.unlinkSync( mod.torito.paths.server.routes.static + "/" + post.path + ".json",data,"utf8");
+                    } else {
+                        var _path = post.path.split("/");
+                        for(var x = 0; x < _path.length;x++) {
+                            if(_path[x].indexOf(":")!=-1) {
+                                _path[x] = "__param__" + escape(_path[x]);
+                            }
+                        }
+                        _path = _path.join("/");
+                        mod.fs.unlinkSync( mod.torito.paths.server.routes._ + "/" + method+"/" + _path + ".jsf",data,"utf8");
+                    }
+                    res.send(JSON.stringify({result:true}));
+                    res.end();
+                    return;
+                } catch(e) {
+                    console.log(e);
+                    console.log(e.stack);
+                    res.send(JSON.stringify({result:false}));
+                    res.end();
+                }
+            }
+        });
+    }
+})();

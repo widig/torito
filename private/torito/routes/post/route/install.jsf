@@ -1,0 +1,127 @@
+(function(){
+    
+	return function(req,res){ 
+	    var body = [];
+        req.on('data', function (data) {
+            if(!(req.session.logged)) {
+                res.send(JSON.stringify({result:false,msg:"not logged."}));
+                req.connection.destroy();
+                return;
+            }
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.join("").length > 1e6) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var qs = require('querystring');
+            var post = qs.parse(body.join(""));
+            if(!(req.session.logged && req.session.level == 0)) {
+                res.send(JSON.stringify({result:false,msg:"not logged."}));
+                res.end();
+                return;
+            }
+            if("path" in post && "code" in post) {
+                try {
+                    var data = mod.codecs.hex2str( post.code );
+                    var method = "get";
+                    if("method" in post && post.method == "post") method = "post";
+                    if("method" in post && post.method == "static") method = "static";
+                    // disable params
+                    /*
+                    var _parts = post.path.split("/");
+                    for(var x = 0; x < _parts.length;x++) {
+                        if(_parts[x].indexOf(":")!=-1) {
+                            throw new Error("cant use params yet.")
+                        }
+                    }
+                    */
+                    // remove old routes
+                    var routes = [];
+                    for(var item in app._router.stack) {
+                        var i = app._router.stack[item];
+                        if(i.route) {
+                            if(i.route.path && i.route.path == post.path && i.route.methods[method]) {
+                                routes.push(i);
+                            }
+                        } else {
+                            var path = i.regexp.toString().substring(3);
+                            var end2 = "\\/?(?=\\/|$)/i";
+                            if(path.substring(path.length-end2.length) == end2 && i.name=="serveStatic") {
+                            path = path.substring(0,path.length-end2.length);
+                                if(path == post.path) {
+                                    routes.push(i);
+                                }
+                            }
+                        }
+                    }
+                    for(var r in routes) {
+                        var id = app._router.stack.indexOf(routes[r]);
+                        app._router.stack.splice(id,1);
+                    }
+                    var _path = post.path.split("/");
+                    if(_path.length>2) {
+                        for(var x = 1; x < _path.length-1;x++) {
+                            if(_path[x] == ".") {
+                                throw new Error("can't use relative to create route.");
+                            }
+                            if(_path[x] == "..") {
+                                throw new Error("can't use relative to create route.");
+                            }
+                            if(_path[x].indexOf(":")!=-1) {
+                                _path[x] = "__param__" + escape(_path[x]);
+                            }
+                            var filename2 = [];
+                            for(var y = 0; y <= x;y++) {
+                                filename2.push(_path[y]);
+                            }
+                            filename2 = filename2.join("/");
+                            console.log(filename2);
+                            if(!mod.fs.existsSync( mod.torito.paths.server.routes._ + "/" +method+"/" + filename2)) {
+                                mod.fs.mkdirSync( mod.torito.paths.server.routes._ + "/" +method+"/" + filename2);
+                            }
+                        }
+                    }
+                    if(method != "static") {
+                        eval("builtin."+method+"[post.path] = " + data);
+                    } else {
+                        data = JSON.parse(data);
+                        builtin.static[post.path] = data;
+                    }
+                    if(method == "static") {
+                        var i = builtin.static[post.path];
+                        app.use(i.path,mod.express.static(i.target));
+                        
+                        mod.fs.writeFileSync( mod.torito.paths.server.routes._ + "/"+method+"/" + post.path + ".json",JSON.stringify(data),"utf8");
+                    } else {
+                        var _path = post.path.split("/");
+                        for(var x = 0; x < _path.length;x++) {
+                            if(_path[x].indexOf(":")!=-1) {
+                                _path[x] = "__param__" + escape(_path[x]);
+                            }
+                        }
+                        _path = _path.join("/");
+                        console.log("???",_path);
+                        app[method](post.path,builtin[method][post.path]);
+                        console.log("OK",_path);
+                        mod.fs.writeFileSync( mod.torito.paths.server.routes._ + "/"+method+"/" + _path + ".jsf",data,"utf8");
+                    }
+
+                    
+
+                    res.send(JSON.stringify({result:true}));
+                    res.end();
+                    return;
+                } catch(e) {
+                    console.log(e);
+                    console.log(e.stack);
+                    res.send(JSON.stringify({result:false,msg:""+e+e.stack}));
+                    res.end();
+                    return;
+                }
+            }
+            
+        });
+    }
+
+})();

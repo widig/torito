@@ -1,7 +1,0 @@
-(function() {
-    return function (req, res) {
-        req.session.logged = false;
-	    res.send( global.fs.readFileSync("./assets/page/torito/login.html","utf8") );
-	    res.end();
-    }
-})();

@@ -1,0 +1,114 @@
+(function() {
+    return function (req,res) {
+        var body = [];
+        req.on('data', function (data) {
+            if(!(req.session.logged)) {
+                req.connection.destroy();
+                return;
+            }
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.join("").length > 1e6) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var qs = require('querystring');
+            var post = qs.parse(body.join(""));
+            var ret = [];
+
+            target = ["session","notes"];
+            var p = req;
+            for(var x = 0; x < target.length;x++) {
+                if(target[x] in p) {
+                    p = p[target[x]];
+                } else {
+                    p[target[x]] = {};
+                    p = p[target[x]];
+                }
+            }
+            target = p;
+
+            
+            
+            if(!( post.id in target)) {
+                res.json({result:false, msg : "C"});
+                res.end();
+                return;
+            }
+            if(!("root" in target[post.id])) {
+                res.json({result:false, msg : "D"});
+                res.end();
+                return;
+            }
+            if(!("path" in post)) {
+                res.json({result:false, msg : "E"});
+                res.end();
+                return;
+            }
+            var base = target[post.id];
+
+            
+            try {
+                console.log(post.path);
+                post.path = JSON.parse(post.path);
+                if( Object.prototype.toString.apply(post.path) == "[object Array]") {
+                    var check = true;
+                    for(var x = 0; x < post.path.length;x++) {
+                        if( Object.prototype.toString.apply(post.path[x]) != "[object Number]") {
+                            check = false;
+                        }
+                    }
+                    if(post.path.length==0) {
+                        check = false;
+                    }
+                    if(check) {
+                        var p = target[post.id].root;
+                        var n = post.path.shift();
+
+                        console.log(":",n,post.path.length);
+                        if(post.path.length > 0) {
+                            if(n < p.length) {
+                                p = p[ n ];
+                            } else {
+                                res.json({result:false,msg:"F"});
+                                res.end();
+                                return;
+                            }
+                            while(post.path.length>0) {
+                                n = post.path.shift();
+                                console.log(":2",n,post.path.length,JSON.stringify(post.path));
+                                if( n < p.replies.length) {
+                                    p = p.replies[n];
+                                } else {
+                                    res.json({result:false,msg:"G"});
+                                    res.end();
+                                    return;
+                                }
+                            }
+                            p.enabled = false;
+                        } else {
+                            p[n].enabled = false;
+                        }
+                        base.version += 1;
+                        
+                        res.json({result : true});
+                        res.end();
+                        return;
+                    } else {
+                        res.json({result:false,msg:"H"});
+
+                        res.end();
+                        return;
+                    }
+                }
+
+            } catch(e) {
+                res.json({result:false,msg:""+e + "\r\n"+e.stack });
+                res.end();
+                return;
+            }
+        
+
+        });
+    };
+})();

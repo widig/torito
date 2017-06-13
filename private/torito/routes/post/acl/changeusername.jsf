@@ -1,0 +1,53 @@
+(function(){
+	return function(req,res){ 
+	    var body = [];
+        req.on('data', function (data) {
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.join("").length > 1e2) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var qs = require('querystring');
+            var post = qs.parse(body.join(""));
+            var acl_table_file = mod.torito.paths.server.acl + "/index.json";
+            if(req.session.logged && req.session.level == 0) {
+                if("oldusername" in post && "password" in post && "username" in post) {
+                    var table = mod.fs.readFileSync(acl_table_file,"utf8");
+                    table = JSON.parse(table);
+                    if(post.oldusername in table.users) {
+                        if(post.password == table.users[ post.target_username ].password ) {
+                            if(post.username in table.users) {
+                                res.send( JSON.stringify({result : false})); // username already exists
+                                res.end();
+                                return;
+                            }
+                            var obj = table.users[ post.oldusername ];
+                            table.users[ post.username ] = obj;
+                            delete table.users[ post.oldusername ];
+                            mod.fs.writeFileSync( acl_table_file , JSON.stringify(table), "utf8");
+
+                            // change folder name
+
+                            // change route name
+                            
+
+                            res.send( JSON.stringify({result:true}) );
+                            res.end();
+                            return;
+                            
+                        } else {
+                            res.send( JSON.stringify({result:false}) ); // password did not match
+                            res.end();    
+                            return;
+                        }
+                    } else {
+                        res.send( JSON.stringify({result:false}) ); // user do not exists
+                        res.end();
+                        return;
+                    }
+                }
+            }
+        });
+    }
+})();

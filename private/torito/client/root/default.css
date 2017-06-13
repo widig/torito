@@ -1,0 +1,221 @@
+body,
+html {
+    margin: 0px;
+    padding: 0px;
+    height: 100%;
+}
+body.menuActivated {
+    overflow: hidden;
+}
+
+.container {
+    position:absolute;
+    left:0px;
+    top:0px;
+    height:100%;
+    transition: transform .3s;
+    -webkit-transition: -webkit-transform .3s;
+}
+.container.menuActivated {
+    -webkit-transform: translateX(200px);
+    -ms-transform: translateX(200px);
+    transform: translateX(200px)
+}
+.menu {
+    position:fixed;
+    top: 0px;
+    left: 0px;
+    width:200px;
+    height:100%;
+    overflow-y:auto;
+    background-color:white;
+    transition: transform .3s;
+    -webkit-transition: -webkit-transform .3s;
+    -webkit-transform: translateX(-100%);
+    -ms-transform: translateX(-100%);
+    transform: translateX(-100%)
+}
+.menu.menuActivated {
+    -webkit-transform: translateX(0);
+    -ms-transform: translateX(0);
+    transform: translateX(0);
+}
+.mask {
+    position: fixed;
+    overflow: hidden;
+    z-index:1000;
+    left:0px;
+    top:0px;
+    width:0px;
+    height:0px;
+    opacity:0.0;
+    background-color:black;
+    -webkit-transition: left .3s;
+    transition: left .3s;
+}
+.mask.menuActivated {
+    left: 200px;
+    width : 100%;
+    height : 100%;
+    opacity: 0.5;
+}
+.clickable {
+    cursor : pointer;
+}
+.global-menu-item  {
+    
+}
+.global-menu-item:hover  {
+    font-weight:bold;
+    
+}
+
+body {
+    font-family:Tahoma;
+    background-color: #498fff;
+    color:black;
+}
+
+.button, .button:link, .button:visited, .button:active {
+    background-color : #888;
+    color: #fff;
+    text-decoration:none;
+    padding : 5px;
+    padding-left:20px;
+}
+.button:hover {
+    background-color : #333;
+    border:solid 1px #fff;
+    color: #fff;
+    font-weight:bold;
+    text-decoration:none;
+    padding : 5px;
+    cursor: default;
+    padding-left:20px;
+}
+.button2, .button2:link, .button2:visited, .button2:active {
+    background-color : #338;
+    color: #fff;
+    text-decoration:none;
+    padding : 5px;
+    padding-left:20px;
+}
+.button2:hover {
+    background-color : #226;
+    border:solid 1px #fff;
+    color: #fff;
+    font-weight:bold;
+    text-decoration:none;
+    padding : 5px;
+    cursor: default;
+    padding-left:20px;
+}
+
+.button3, .button3:link, .button3:visited, .button3:active {
+    background-color : #883;
+    color: #fff;
+    text-decoration:none;
+    padding : 5px;
+    padding-left:20px;
+}
+.button3:hover {
+    background-color : #662;
+    border:solid 1px #fff;
+    color: #fff;
+    font-weight:bold;
+    text-decoration:none;
+    padding : 5px;
+    cursor: default;
+    padding-left:20px;
+}
+
+.borderBottom {
+    border-bottom : solid 1px #000;
+}
+.groupDir {
+    background-color : #777;
+    color: white;
+    padding: 5px;
+    font-size:20px;
+    font-weight:bold;
+}
+
+
+.app_filemanager, .app_accounts, .app_terminal, .app_logout{
+    position:absolute;
+    left:0px;
+    top:0px;
+}
+.menuRoutes , .menuFileManager, .menuAccounts {
+    position:absolute;
+    left:10px;
+    top:70px;
+    border:solid 1px #000;
+    overflow:hidden;
+    width:230px;
+    background-color:#777;
+}
+.menuRoutesTitle, .menuFilesTitle, .menuAccountsTitle {
+    padding:10px;
+    padding-left:5px;
+    font-size:20px;
+    background-color:#006;
+    color:white;
+}
+.menuRoutesContents , .menuFilesContents, .menuAccountsContents{
+    overflow:auto;
+    width:230px;
+}
+
+
+.containerRoutesEditor, .containerFileManagerEditor, .containerAccountsEditor {
+    position : absolute;
+    left : 250px;
+    top : 70px;
+    color:#fff;
+    border:solid 1px #000;
+}
+.containerFileManagerEditor {
+    top : 120px;
+}
+    
+.panelAddRoute{
+    position:fixed;
+    left:10px;
+    top:720px;
+    width:210px;
+    border:solid 1px #000;
+    background-color:#777;
+    color:#fff;
+    padding:10px;
+}
+.contextRoute, .contextFile {
+    width:200px;
+    background-color:#777;
+    padding:0px;
+    color:white;
+    border:solid 1px #000;
+}
+.pathFileManager {
+    position:absolute;
+    left:250px;
+    top:70px;
+    width:400px;
+    background-color:white;
+    border:solid 1px #000;
+    padding:5px;
+
+}
+.appAccountsUsersGlobalView  td {
+    padding: 20px;
+}
+
+
+
+/*-------------------------------------------------------------------------*/
+
+.profile1 td {
+    border:solid 1px #000;
+    padding:20px;
+    
+}

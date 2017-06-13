@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="/load?file=./public/page/torito/js/import.js"></script>
+		<script src="/load?file=./public/page/torito/js/SHA1.js"></script>
+		
+		<style>
+			body {
+				font-family:Tahoma;
+				background-color: #498fff;
+			}
+		</style>
+		<script>
+			window.addEventListener("load",function() {
+				document.getElementById("frmLogin_btnEnter").addEventListener("click",function() {
+					Import({url:"/acl/login",method:"post",data:{
+						username:document.getElementById("frmLogin_txtUsername").value,
+						password: sha1(document.getElementById("frmLogin_txtPassword").value)
+					}})
+					.done(function(data) {
+						alert(data);
+						data = JSON.parse(data);
+						if(data.result) {
+							var url = "" + window.location;
+							var parts = url.split("/");
+							if(parts[3] == "") {
+								alert("reload");
+								window.location.reload(true);
+							} else {
+								window.location = "/";
+							}
+						}
+					})
+					.send();
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="top" style="">
+			<table width="100%" style="background-color:transparent;border:none;" border=0>
+				<tr>
+					<td align="left">
+					
+					</td>
+					<td align="center" style="font-size:22px;">
+						<table border=0>
+							<tr>
+								<td>
+									<img src="public/page/torito/img/icon.gif" width="64"/>			
+								</td>
+							</tr>
+							<tr>
+								<td align="right">
+									<span style="font-size:12px;">username:</span><br/>
+									<input tabindex=1 id="frmLogin_txtUsername" type="text"/>
+								</td>
+							</tr>
+							<tr>
+								<td align="right">
+									<span style="font-size:12px;">password:</span><br/>
+									<input tabindex=2 id="frmLogin_txtPassword" type="password"/>
+								</td>
+							</tr>
+							<tr>
+								<td align="right">
+									<input id="frmLogin_btnEnter" tabindex=3 type="button" value="enter"/>
+								</td>
+							</tr>
+						</table>
+					</td>
+					<td align="right">
+						
+					</td>
+				</tr>
+			</table>
+		</div>
+	</body>
+</html>

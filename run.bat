@@ -1,0 +1,1 @@
+supervisor -w index.js index.js

@@ -1,0 +1,95 @@
+(function() {
+    return function (req,res) {
+        var arr;
+        var body = [];
+        req.on('data', function (data) {
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.join("").length > 1e2) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var qs = require('querystring');
+            var post = qs.parse(body.join(""));
+            
+            if(!(req.session.logged && req.session.level == 0)) {
+                res.send(JSON.stringify({result:false,msg:"not logged."}));
+                res.end();
+                return;
+            }
+            if(!("dir" in post)) {
+                res.send(JSON.stringify({result:false,msg:"no directory."}));
+                res.end();
+                return;
+            }
+            
+            var arr = escape(post.dir);
+            var parts = arr.split("/");
+            var current_path = ".";
+            for(var x = 1; x < parts.length;x++) {
+                var link_file = current_path + "/" + parts[x] + ".link";
+                if( mod.fs.existsSync( link_file ) ) {
+                    var json = JSON.parse( mod.fs.readFileSync( link_file, "utf8" ) );
+                    if("path" in json) {
+                        current_path = json.path;
+                    } else {
+                        throw "not handled2";
+                    }
+                } else {
+                    current_path += "/" + parts[x];
+                }
+                if(x == parts.length-1) {
+                    var filename2 = unescape(current_path);
+                    try {
+                        if( mod.fs.lstatSync(filename2).isDirectory() ) {
+                            mod.fs.unlinkSync(filename2);	
+                            res.send(JSON.stringify({result:true}));
+                            res.end();
+                            return;
+                        } else if( mod.fs.lstatSync(filename2).isFile() ) {
+                            var check = true;
+                            var msg = "fail";
+                            if(arr.indexOf("./")==0) {
+                                var meta = mod.torito.paths.server.meta.file + "/" + arr.substring(2);
+                                try {
+                                    var json = JSON.parse(mod.fs.readFileSync(meta,"utf8"));
+                                    if( json.canRemove === false ) {
+                                        check = false;
+                                        msg = "file is protected.";
+                                    }
+                                } catch(e) {
+                                    console.log(e);
+                                }
+                            } else {
+                                throw "unkown path";
+                            }
+                            if(check) {
+                                mod.fs.unlinkSync(filename2);	
+                                res.send(JSON.stringify({result:true}));
+                                res.end();
+                                return;
+                            } else {
+                                res.send(JSON.stringify({result:false,msg:msg}));
+                                res.end();
+                                return;
+                            }
+                        } else {
+                            res.send(JSON.stringify({result:false,msg:"already exists.(3)"}));
+                            res.end();
+                            return;
+                        }
+                    } catch(e) {
+                        // not found
+                        res.send(JSON.stringify({result:false,msg:"not found.(1)" + e.message}));
+                        res.end();
+                        return;
+                    }
+                }
+            }
+                
+            
+
+        });
+    
+    }
+})();

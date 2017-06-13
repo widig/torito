@@ -1,0 +1,24 @@
+(function() {
+    return function (req, res) {
+	console.log("/",JSON.stringify(req.session));
+        if(req.session.logged) {
+            if(req.session.level == 0) { // system level
+                mod.webfile.load(res,"./private/torito/client/root",{});
+                return;
+            } else if(req.session.level == 1) { // private level (crypted)
+                res.send(mod.fs.readFileSync(mod.torito.paths.clientPrivate + "/private.html","utf8"));
+                res.end();
+                return;
+            } else if(req.session.level == 2) { // public level
+                res.send(mod.fs.readFileSync(mod.torito.paths.clientPrivate + "/public.html","utf8"));
+                res.end();
+                return;
+            }
+            return;
+        } else {
+	        res.send( mod.fs.readFileSync(mod.torito.paths.clientPublic + "/login.html","utf8") );
+	        res.end();
+            return;
+        }
+    }
+})();
