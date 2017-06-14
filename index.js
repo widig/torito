@@ -15,11 +15,11 @@ for(i in toInclude) {
 
 var routesDirectory = { get : mod.torito.paths.server.routes.get, post : mod.torito.paths.server.routes.post, static : mod.torito.paths.server.routes.static };
 
-var serverPort = 3001;
+
 app = mod.express();
 mod.app = app;
 mod.session.reset();
-
+app.set("port",process.env.PORT || 3001);
 function guid() {
 	function s4() {
 		return Math.floor((1 + Math.random()) * 0x10000) .toString(16) .substring(1);
@@ -154,6 +154,6 @@ for(var dir in routesDirectory) {
 	}
 }
 
-app.listen(serverPort, "127.0.0.1",function() {
-	console.log("server at "+serverPort+"!");
+app.listen(app.set("port"), function() {
+	console.log("server at "+app.set("port")+"!");
 });

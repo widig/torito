@@ -11,9 +11,8 @@
 			}
 		</style>
 		<script>
-			window.addEventListener("load",function() {
-				document.getElementById("frmLogin_btnEnter").addEventListener("click",function() {
-					Import({url:"/acl/login",method:"post",data:{
+			function send() {
+				Import({url:"/acl/login",method:"post",data:{
 						username:document.getElementById("frmLogin_txtUsername").value,
 						password: sha1(document.getElementById("frmLogin_txtPassword").value)
 					}})
@@ -30,6 +29,20 @@
 						}
 					})
 					.send();
+			}
+			window.addEventListener("load",function() {
+				document.getElementById("frmLogin_txtUsername").addEventListener("keyup",function(e) {
+					if(e.keyCode == 13) {
+						document.getElementById("frmLogin_txtPassword").focus();
+					}
+				});
+				document.getElementById("frmLogin_txtPassword").addEventListener("keyup",function(e) {
+					if(e.keyCode == 13) {
+						send();
+					}
+				});
+				document.getElementById("frmLogin_btnEnter").addEventListener("click",function() {
+					send();
 				});
 			});
 		</script>
