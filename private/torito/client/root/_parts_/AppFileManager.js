@@ -283,7 +283,7 @@ Class.define("AppFileManager",{
 									var code = str.charCodeAt(x);
 									sb.push( dict[ (0xF0 & code) >> 4 ] + dict[ 0xF & code ]  );
 								}
-								alert("save");
+								
 								Import({method:"post",url:"/file/update", data:{ data : sb.join(""), file : escape(app.editor.fileSelected) } })
 									.done(function(response) {
 										
@@ -343,7 +343,7 @@ Class.define("AppFileManager",{
 									reference : path
 								}})
 								.done(function(data) {
-									alert("/note/create\r\n" + data);
+									
 									data = JSON.parse(data);
 									if(data.result) {
 										app.notes.id = data.id;

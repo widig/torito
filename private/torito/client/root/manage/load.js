@@ -40,7 +40,7 @@ if(!this.init) {
     // to know that that are a history we must analyse the other branch. (what you don't know may hurt you)
     var last = this.history[this.history.length-1];
     if(last.args.system != obj.args.system ) {
-        alert("changed from " + last.hash + " to " + obj.hash);
+        //alert("changed from " + last.hash + " to " + obj.hash);
 
         // if old system=file and there is a server then save
         // if new system=file replace server with saved one and reload with history.go

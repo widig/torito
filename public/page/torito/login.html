@@ -18,13 +18,11 @@
 						password: sha1(document.getElementById("frmLogin_txtPassword").value)
 					}})
 					.done(function(data) {
-						alert(data);
 						data = JSON.parse(data);
 						if(data.result) {
 							var url = "" + window.location;
 							var parts = url.split("/");
 							if(parts[3] == "") {
-								alert("reload");
 								window.location.reload(true);
 							} else {
 								window.location = "/";
