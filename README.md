@@ -3,7 +3,9 @@ Another "Web Manager" to handle assets.
 
 download. unpack. then run the command:
 
-'''npm install'''
+'''
+npm install
+'''
 
 it will start a server on port 3001.
 
