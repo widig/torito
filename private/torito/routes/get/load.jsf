@@ -43,10 +43,10 @@
                         current_path += "/" + parts[x];
                     }
                     if(x == parts.length-1) {
-                        var filename2 = unescape(current_path);
+                        var filename2 = unescape(unescape(current_path));
                         // test if file is protected by login
-
-
+                        
+                        //console.log(">>",unescape(filename2));
                         if( mod.fs.existsSync(filename2) ) {
                             if( mod.fs.lstatSync(filename2).isDirectory() ) {
                                 res.status(404).send("Sorry can't find that! Broken link. (3)");

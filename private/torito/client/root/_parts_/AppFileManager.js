@@ -39,6 +39,9 @@ Class.define("AppFileManager",{
 										"<tr>"+
 											"<td id='contextServerNewDirectory' class='button'>new directory</td>"+
 										"</tr>"+
+										"<tr>"+
+											"<td class='button' style='height:20px;'><div>upload file</div><div style='height:0px;'><input id='contextServerUploadFile' type='file' style='position:relative;left:-20px;top:-20px; width:150px;opacity:0;'/></div></td>"+
+										"</tr>"+
 									"</table>"+
 								"</div>"+
 								"<div id='contextServerDirectory' class='contextFile' style='display:none;'>"+
@@ -64,9 +67,9 @@ Class.define("AppFileManager",{
 							selected : {},
 							menu : {
 								Server : {
-									visibility : true
+									visibility : true,
+									currentNames : []
 								}
-								
 							},
 							editor : {
 								fileSelected : "",
@@ -216,7 +219,172 @@ Class.define("AppFileManager",{
 							})
 							.send();
 						});
-						
+						p.el.contextServerUploadFile.addEventListener("change",function() {
+							app.menu.dispose();
+							input = p.el.contextServerUploadFile;
+							if (!input) {
+								alert("Um, couldn't find the fileinput element.");
+							}
+							else if (!input.files) {
+								alert("This browser doesn't seem to support the `files` property of file inputs.");
+							}
+							else if (!input.files[0]) {
+								alert("Please select a file before clicking 'Load'");
+							}
+							else {
+								file = input.files[0];
+								var tryname = file.name;
+								var oname = file.name;
+								var DirectoryFiles = app.menu.Server.currentNames;
+								var check = false;
+								var code = 0;
+								for(var x = 0; x < DirectoryFiles.length;x++) {
+									if(DirectoryFiles[x] == tryname) {
+										check = true;
+										break;
+									}
+								}
+								var renamed_alert = false;
+								if(check) {
+									var t = tryname.split(".");
+									var ext = t.pop();
+									t = t.join(".");
+									while(check) {
+										var check2 = false;
+										for(var x = 0; x < DirectoryFiles.length;x++) {
+											if(DirectoryFiles[x] == t + "(" + code + ")" + "." + ext) {
+												check2 = true;
+												break;
+											}
+										}
+										if(check2) {
+											code += 1;
+											continue;
+										}
+										break;
+									}
+									renamed_alert = true;
+									tryname = t + "(" + code + ")" + "." + ext;
+									
+								}
+								alert(tryname);
+								fr = new FileReader();
+								fr.onload = function() {
+									var markup, m2, result, n, aByte, byteStr;
+									markup = [];
+									m2 = [];
+									result = fr.result;
+									console.log(result.length);
+
+									(function(result) {
+										var __workerInstance_id = 0;
+										
+										function WorkerInstance(url) {
+											var t = this;
+											this.id = __workerInstance_id++;
+											this.instance = new Worker(url);
+											this.data = {};
+											var __request_id = 0;
+											this.instance.onmessage = function(e) {
+												t.data[ e.data.path + ":" + e.data.id ].callback.apply(null,[e.data.value]);
+												delete t.data[ e.data.path + ":" + e.data.id ];
+											}
+											this.request = function(path,args,callback) {
+												var id = __request_id++;
+												t.data[path + ":" + id] = { callback : callback }
+												t.instance.postMessage.apply(t.instance,[{id:id, path:path,args:args}]);
+											}
+										}
+										
+										var blob = new Blob(["(" + 
+											function() {
+												var storage = {
+													"echo" : function(msg) {
+
+														var str = msg;
+														var dict = { 0 : "0", 1 : "1", 2 : "2", 3 : "3", 4 : "4", 5 : "5", 6 : "6", 7 : "7", 8: "8", 9 : "9", 10 : "A", 11 : "B", 12 : "C" , 13 : "D", 14 : "E", 15 : "F" };
+														var sb = [];
+														for(var x = 0; x < str.length;x++) {
+															var code = str.charCodeAt(x);
+															sb.push( dict[ (0xF0 & code) >> 4 ] + dict[ 0xF & code ]  );
+														}
+														return sb.join("");
+
+													},
+													"close" : function() {
+														self.close();
+													}
+												}
+												function resolve(path) {
+													path = path.split("/");
+													if(!(path[0] in storage)) {
+														return function() {
+															return 0; // error
+														}
+													}
+													var p = storage[path[0]];
+													for(var x = 1; x < path.length;x++) {
+														if(!(path[x] in p)) {
+															return function() {
+																return 0; // error
+															}
+														} else {
+															p = p[ path[x] ];
+														}
+													}
+													return p;
+												}
+												self.addEventListener('message', function(e) {
+													var id = e.data.id;
+													var path = e.data.path;
+													var args = e.data.args;
+													var result = resolve(path).apply(null,args);
+													self.postMessage({
+														id : id,
+														path : path,
+														value : result
+													});
+												}, false);
+
+											}.toString()
+										+ ")();"], {type: "text/javascript"});
+										var blobURL = URL.createObjectURL(blob);
+										var worker2 = new WorkerInstance(blobURL);
+										URL.revokeObjectURL(blobURL);
+										worker2.request("echo",[result],function(file){
+											console.log("??",file.length);
+											Import({url:"/file/touch", method:"post", data : { dir : context.files.server + "/" + tryname } })
+												.done(function(data) {
+													data = JSON.parse(data);
+													if(data.result) {
+														Import({url:"/file/update",method:"post",data:{ data : file, file : context.files.server + "/" + tryname } })
+															.done(function(response) {
+																if(renamed_alert) {
+																	alert("file:'" + oname + "' uploaded and renamed to '" + tryname + "' !");
+
+																} else {
+																	alert("file:'" + tryname + "' uploaded!");
+																}
+																p.el.contextServerUploadFile.value = "";
+																refresh_server_files();
+																//window.location.reload();
+															})
+															.send();
+													} else {
+														alert(data.msg);
+													}
+												})
+												.send();
+											worker2.request("close",[],function() {
+												console.log("end.");
+											});
+										});
+									})(result);
+
+								};
+								fr.readAsBinaryString(file);
+							}
+						});
 						function setContext(target,name,args) {
 							target.addEventListener("mouseup",function(event) {
 								app.selected = {};
@@ -512,6 +680,9 @@ Class.define("AppFileManager",{
 							//alert("@:"+context.files.server);
 							var parts = context.files.server.split("/");
 							
+
+							
+
 							if(parts.length > 1 && context.files.server!="./") {
 								var tr = self.server_files_placeholder.$.elementPush("tr_"+file,"tr");
 								var td = tr.$.elementPush("td_"+file,"td",{
@@ -537,12 +708,16 @@ Class.define("AppFileManager",{
 							
 							self.server_files_innerplaceholder = self.server_files_placeholder.$.elementPush("WithDOMElements2");
 							
-							
+							// clear
+							app.menu.Server.currentNames.splice(0,app.menu.Server.currentNames.length);
+
 							var folders = [];
 							var nfolders = [];
 							for(var file in data) {
 								if(data[file] == 0) folders.push(file);
 								if(data[file] != 0) nfolders.push(file);
+
+								app.menu.Server.currentNames.push(file.substring( context.files.server.length+1 ));
 							}
 							folders.sort();
 							nfolders.sort();
