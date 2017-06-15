@@ -1,3 +1,5 @@
+## this is alpha version, so don't use it. just for tests purposes.
+
 # torito
 Another "Web Manager" to handle assets.
 
