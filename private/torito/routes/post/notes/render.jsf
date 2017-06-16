@@ -1,6 +1,8 @@
 (function() {
     return function (req,res) {
+
         var body = [];
+
         req.on('data', function (data) {
             if(!(req.session.logged)) {
                 req.connection.destroy();
@@ -15,6 +17,7 @@
             var qs = require('querystring');
             var post = qs.parse(body.join(""));
             var ret = [];
+
 
             if(!(req.session.logged)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
@@ -33,22 +36,40 @@
                 }
             }
             target = p;
-
             
             if(!("id" in post)) {
-                res.json({result : false, msg:"A"});
+                res.json({result:false,msg:"A"});
                 res.end();
                 return;
             }
-            if(!( post.id in target)) {
-                res.json({result:false, msg : "C"});
+            if(!(post.id in target)) {
+                res.json({result:false,msg:"B"});
                 res.end();
                 return;
+            }
+
+            function _render(buffer,target) {
+
+                for(var x = target.length-1; x>=0; x--) {
+                    //buffer[x].
+                    if(target[x].enabled) {
+                        var msg = target[x].message;
+                        if(msg.type == "txt") {
+                            buffer.push( msg.raw );
+                        }
+                        _render(buffer, target[x].replies );
+                    }
+                }
             }
             
-            res.json({result:true, value : target[post.id].version});
+            var arr = target[post.id].root;
+            var buffer = [];
+            _render(buffer,arr);
+            
+            res.json({result:true,value:buffer.join("\r\n")});
             res.end();
             return;
+
 
         });
     };

@@ -11,10 +11,12 @@ Class.define("AppNotes",{
             // get view
             this.components = this.elementPushPacket(
                 "<WithDOMElements2 id='app_notes_manage'></WithDOMElements2>"+
-                "<WithDOMElements2 id='app_notes_interact'></WithDOMElements2>"
+                "<WithDOMElements2 id='app_notes_interact'></WithDOMElements2>"+
+                "<WithDOMElements2 id='app_notes_render'></WithDOMElements2>"
             );
             function load_manage() {
                 self.components.$.app_notes_interact.elementsClear();
+                self.components.$.app_notes_render.elementsClear();
                 var p = self.components.$.app_notes_manage.elementSetPacket(
                     "<div id='app_notes'>"+
                         "<div style='padding:20px;'>"+
@@ -52,10 +54,16 @@ Class.define("AppNotes",{
                         })
                         .send();
                     });
-                    p.el.btnViewNote.addEventListener("click",function() {
+                    p.el.btnViewInteract.addEventListener("click",function() {
                         History.go("#manage:system=notes&view=interact&id=" + note.id);
                         return;
                     });
+                    /*
+                    p.el.btnViewRender.addEventListener("click",function() {
+                        History.go("#manage:system=notes&view=render&id=" + note.id);
+                        return;
+                    });
+                    */
                 }
                 function refresh_notes() {
                     Import({url:"/notes/listRoot",method:"post",data:{}})
@@ -68,7 +76,13 @@ Class.define("AppNotes",{
                                     "<div style='background-color:white;color:black;border:solid 1px #000;padding:20px;margin-bottom:10px;'>"+
                                         "<div>title : "+data.value[x].title+"</div>"+
                                         "<div>reference : "+data.value[x].reference+"</div>"+
-                                        "<div style='display:flex;width:100%;'><input type='button' id='btnCloseNote' value='close this notes'/><input type='button' id='btnViewNote' value='view notes'/></div>" +
+                                        "<div style='display:flex;width:100%;'>"+
+                                            "<input type='button' id='btnCloseNote' value='close this notes'/>"+
+                                            "<input type='button' id='btnViewInteract' value='view notes'/>"+
+                                            /*
+                                            "<input type='button' id='btnViewRender' value='render notes'/>"+
+                                            */
+                                        "</div>" +
                                     "</div>"
                                 );
                                 setNote(p2,data.value[x]);
@@ -93,8 +107,39 @@ Class.define("AppNotes",{
                 });
 
             }
+            function load_render() {
+                self.components.$.app_notes_manage.elementsClear();
+                self.components.$.app_notes_interact.elementsClear();
+                var p = self.components.$.app_notes_render.elementSetPacket(
+                    "<div id='app_notes' style='height:100%;'>"+
+                        "<div style='height:100%;'>"+
+                            "<textarea id='txtRender' style='width:100%;height:100%;'></textarea>"+
+                        "</div>" +
+                    "</div>"
+                );
+
+                if(!("id" in context.args)) {
+                    alert("must have an id to access interact.");
+                    return;
+                }
+                function refresh() {
+                    Import({url:"/notes/render",method:"post", data:{id:context.args.id}})
+                    .done(function(data) {
+                        data = JSON.parse(data);
+                        if(data.result) {
+                            p.el.txtRender.value = data.value;
+                        } else {
+                            alert(JSON.stringify(data));
+                        }
+                    })
+                    .send();
+                }
+                refresh();
+
+            }
+
             function load_interact() {
-                
+                self.components.$.app_notes_render.elementsClear();
                 self.components.$.app_notes_manage.elementsClear();
                 var p = self.components.$.app_notes_interact.elementSetPacket(
                     
@@ -135,7 +180,31 @@ Class.define("AppNotes",{
                         if(data.result) {
                             done&&done(data);
                         } else {
-                            error&error(data);
+                            if( data.msg == "C" ) {
+                                alert("file was deleted.");
+                                self.components.$.app_notes_interact.elementsClear();
+                            } else {
+                                error&error(data);
+                            }
+                        }
+                    })
+                    .send();
+                }
+                function Update(id,path,str,done,error) {
+                    var args = { id : id, message : Export.Codec.Hex(str)};
+                    if(path) args.path = path;
+                    Import({url:"/notes/edit",method:"post",data : args })
+                    .done(function(data){
+                        data = JSON.parse(data);
+                        if(data.result) {
+                            done&&done(data);
+                        } else {
+                            if( data.msg == "C" ) {
+                                alert("file was deleted.");
+                                self.components.$.app_notes_interact.elementsClear();
+                            } else {
+                                error&error(data);
+                            }
                         }
                     })
                     .send();
@@ -145,11 +214,11 @@ Class.define("AppNotes",{
                         p.el.txtMessage.value = "";
                         refresh_notes();
                     },function(data) {
-                        alert(error + "\r\n" + JSON.stringify(data));
+                        alert("\r\n" + JSON.stringify(data));
                         p.el.txtMessage.value = "";
                     })
                 });
-                function setReply(p,id,path) {
+                function setReply(p,id,path,data) {
                     p.el.btnReply.addEventListener("click",function() {
                         var p2 = p.$.reply_control.elementSetPacket(
                             "<div style='display:flex;margin-bottom:10px;'>"+
@@ -161,10 +230,29 @@ Class.define("AppNotes",{
                             Send(id,path,p2.el.txtMessage.value,function() {
                                 refresh_notes();
                             },function(data) {
-                                alert(error + "\r\n" + JSON.stringify(data));
+                                alert("\r\n" + JSON.stringify(data));
                             })
                             p.$.reply_control.elementsClear();
                         });
+                    });
+                    p.el.btnEdit.addEventListener("click",function() {
+                        p.$.lblMessage.elementsClear();
+                        p2 = p.$.lblMessage.elementSetPacket(
+                            "<div style='display:flex;margin-bottom:10px;'>"+
+                                "<textarea id='txtMessage' style='flex:1;height:60px;'></textarea>"+
+                                "<input id='btnSend' type='button' value='send' style='height:67px;'>"+
+                            "</div>"
+                        );
+                        p2.el.txtMessage.value = data.message.raw;
+                        p2.el.btnSend.addEventListener("click",function() {
+                            Update(id,path,p2.el.txtMessage.value,function() {
+                                refresh_notes();
+                            },function(data) {
+                                alert("\r\n" + JSON.stringify(data));
+                            })
+                            
+                        });
+
                     });
                     p.el.btnClose.addEventListener("click",function() {
                         Import({
@@ -200,18 +288,20 @@ Class.define("AppNotes",{
                                         "<span> at </span>"+
                                         "<span style='font-weight:bold;'>"+date_str+"</span>"+
                                         "<span> | </span>"+
-                                        "<span id='btnReply' style='font-family:Courier New;font-size:12px;'> Reply </span>"+
+                                        "<span id='btnReply' style='font-family:Courier New;font-size:12px;cursor:pointer;'> Reply </span>"+
                                         "<span> | </span>"+
-                                        "<span id='btnClose' style='font-family:Courier New;font-size:12px;'> Close </span>"+
+                                        "<span id='btnEdit' style='font-family:Courier New;font-size:12px;cursor:pointer;'> Edit </span>"+
+                                        "<span> | </span>"+
+                                        "<span id='btnClose' style='font-family:Courier New;font-size:12px;cursor:pointer;'> Close </span>"+
                                     "</div>"+
-                                    "<div style='font-size:16px;'>"+arr[x].message.value+"</div>"+
+                                    "<WithDOMElements2 id='lblMessage'><div style='font-size:16px;'>"+arr[x].message.value+"</div></WithDOMElements2>"+
                                     "<WithDOMElements2 id='reply_control'></WithDOMElements2>" +
                                     "<WithDOMElements2 id='reply_area'></WithDOMElements2>" +
                                 "</div>"+
                                 "<div id='btnInsert'>"+
                                 "</div>"
                             )
-                            setReply(p3,id,JSON.stringify(path));
+                            setReply(p3,id,JSON.stringify(path),arr[x]);
                             fill_replies(p3,arr[x].replies,id,JSON.stringify(path));
                         }
                         path.pop();
@@ -237,6 +327,7 @@ Class.define("AppNotes",{
                             fill_replies(p.$.dir,arr,context.args.id,JSON.stringify([]));
                             app.loaded = true;
                         } else {
+                            
                             alert(JSON.stringify(data));
                         }
                     })
@@ -267,13 +358,15 @@ Class.define("AppNotes",{
             this.hide = function() {
                 self.components.$.app_notes_manage.elementsClear();
                 self.components.$.app_notes_interact.elementsClear();
+                self.components.$.app_notes_render.elementsClear();
             }
             this.show = function(context) {
-                
                 if( context.args.view == "manage") {
                     load_manage();
                 } else if(context.args.view == "interact") {
                     load_interact();
+                } else if(context.args.view == "render") {
+                    load_render();
                 }
 
             }

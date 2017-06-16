@@ -22,7 +22,6 @@
                 res.end();
                 return;
             }
-            
             var arr = escape(post.dir);
             var parts = arr.split("/");
             var current_path = ".";
@@ -39,23 +38,28 @@
                     current_path += "/" + parts[x];
                 }
                 if(x == parts.length-1) {
+                    console.log("A1");
                     var filename2 = unescape(current_path);
                     try {
+                        console.log("A2");
                         if( mod.fs.lstatSync(filename2).isDirectory() ) {
-                            mod.fs.unlinkSync(filename2);	
-                            res.send(JSON.stringify({result:true}));
+                            console.log("A3");
+                            res.send(JSON.stringify({result:false,msg:"its a folder."}));
                             res.end();
                             return;
                         } else if( mod.fs.lstatSync(filename2).isFile() ) {
+                            console.log("A4");
                             var check = true;
                             var msg = "fail";
                             if(arr.indexOf("./")==0) {
                                 var meta = mod.torito.paths.server.meta.file + "/" + arr.substring(2);
                                 try {
-                                    var json = JSON.parse(mod.fs.readFileSync(meta,"utf8"));
-                                    if( json.canRemove === false ) {
-                                        check = false;
-                                        msg = "file is protected.";
+                                    if(mod.fs.existsSync(meta)) {
+                                        var json = JSON.parse(mod.fs.readFileSync(meta,"utf8"));
+                                        if( json.canRemove === false ) {
+                                            check = false;
+                                            msg = "file is protected.";
+                                        }
                                     }
                                 } catch(e) {
                                     console.log(e);
@@ -63,17 +67,61 @@
                             } else {
                                 throw "unkown path";
                             }
+                            console.log("A5");
                             if(check) {
+                                console.log("A6");
+
+                                var target = ["session","notes"];
+                                var p = req;
+                                for(var x = 0; x < target.length;x++) {
+                                    if(target[x] in p) {
+                                        p = p[target[x]];
+                                    } else {
+                                        p[target[x]] = {};
+                                        p = p[target[x]];
+                                    }
+                                }
+                                target = p;
+                                for(var key in target) {
+                                    if( target[key].reference == filename2 ) {
+                                        delete target[key];
+                                        break;
+                                    }
+                                }
+                                
+                                // delete notes of that file
+                                // filename2
+                                var notes_path = mod.torito.paths.server.notes + filename2.substring(1);
+                                if(mod.fs.existsSync(notes_path)) {
+                                    if(mod.fs.lstatSync(notes_path).isDirectory()) {
+                                        console.log("A7");
+                                        
+                                        console.log("A8");
+                                        var notes_files = mod.fs.readdirSync(notes_path);
+                                        for(var i in notes_files) {
+                                            var file = notes_files[i];
+                                            mod.fs.unlinkSync(notes_path + "/" + file);
+                                        }
+                                        mod.fs.rmdirSync(notes_path);
+                                    } else {
+                                        console.log("A7.2");        
+                                    }
+                                } else {
+                                    console.log("A7.1");    
+                                }
+                                console.log("A9");
                                 mod.fs.unlinkSync(filename2);	
                                 res.send(JSON.stringify({result:true}));
                                 res.end();
                                 return;
                             } else {
+                                console.log("A10");
                                 res.send(JSON.stringify({result:false,msg:msg}));
                                 res.end();
                                 return;
                             }
                         } else {
+                            console.log("A11");
                             res.send(JSON.stringify({result:false,msg:"already exists.(3)"}));
                             res.end();
                             return;

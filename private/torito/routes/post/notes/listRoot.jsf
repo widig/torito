@@ -16,6 +16,12 @@
             var post = qs.parse(body.join(""));
             var ret = [];
 
+            if(!(req.session.logged)) {
+                res.send(JSON.stringify({result:false,msg:"not logged."}));
+                res.end();
+                return;
+            }
+            
             target = ["session","notes"];
             var p = req;
             for(var x = 0; x < target.length;x++) {

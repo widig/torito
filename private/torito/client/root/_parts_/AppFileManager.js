@@ -6,6 +6,7 @@ Class.define("AppFileManager",{
 				proto : {
 					init : function(context) {
 						
+						
 						var i = this.internal.AppFileManager.data = {};
 						this.table = null;
 						var self = this;
@@ -195,6 +196,15 @@ Class.define("AppFileManager",{
 								.done(function(data) {
 									data = JSON.parse(data);
 									if(data.result) {
+										// delete in use
+										if( app.editor.fileSelected == file ) {
+											app.editor.fileSelected = "";
+											app.editor.main.setValue("");
+											// disable notes too
+											p.$.title.elementSetPacket("[temporary]");
+											closeNotes();
+
+										}
 										alert("file:'" + unescape(file) + "' removed!");
 										refresh_server_files();
 									} else {
@@ -442,24 +452,17 @@ Class.define("AppFileManager",{
 						self.server_files_placeholder = t.$.elementPush("WithDOMElements2");
 						function saveFile() {
 							// fileSelected is used because app.selected.path confuse with context menu use.
-
 							if(app.editor.fileSelected!="") {
-								var str = app.editor.main.getValue();
-								var dict = { 0 : "0", 1 : "1", 2 : "2", 3 : "3", 4 : "4", 5 : "5", 6 : "6", 7 : "7", 8: "8", 9 : "9", 10 : "A", 11 : "B", 12 : "C" , 13 : "D", 14 : "E", 15 : "F" };
-								var sb = [];
-								for(var x = 0; x < str.length;x++) {
-									var code = str.charCodeAt(x);
-									sb.push( dict[ (0xF0 & code) >> 4 ] + dict[ 0xF & code ]  );
-								}
 								
-								Import({method:"post",url:"/file/update", data:{ data : sb.join(""), file : escape(app.editor.fileSelected) } })
+								Import({method:"post",url:"/file/update", data:{ data : Export.Codec.Hex(app.editor.main.getValue()), file : escape(app.editor.fileSelected) } })
 									.done(function(response) {
-										
-										
 										alert(response);
 										UI.Window.keyboard.ctrl = false;
 									})
 									.send();
+							} else {
+								// choose path to save
+								alert("todo, save a temporary file.");
 							}
 						};
 						function refresh_all_files() {
@@ -467,84 +470,76 @@ Class.define("AppFileManager",{
 							
 
 						}
-						p.el.notesTitle.addEventListener("click",function() {
-							if(!app.notes.active) {
-								var titleHeight = 0;
-								var adjust = 16;
-								p.el.notesContainer.style.top = (window.innerHeight - 57 - ((window.innerHeight - 40 - titleHeight-70-50)) + adjust ) + "px";
-								var height = (38 + ((window.innerHeight - 40 - titleHeight-70-50)) - adjust );
-								p.el.notesContainer.style.height = height + "px";
-								p.el.notesData.style.height = (height-50)+"px";
-								p.el.notesData.style.border = "solid 1px #f00";
-								p.el.notesData.style.overflowY = "auto";
-								p.el.notesData.style.display = "";
+						function openNotes() {
+							var titleHeight = 0;
+							var adjust = 16;
+							p.el.notesContainer.style.top = (window.innerHeight - 57 - ((window.innerHeight - 40 - titleHeight-70-50)) + adjust ) + "px";
+							var height = (38 + ((window.innerHeight - 40 - titleHeight-70-50)) - adjust );
+							p.el.notesContainer.style.height = height + "px";
+							p.el.notesData.style.height = (height-50)+"px";
+							p.el.notesData.style.border = "solid 1px #f00";
+							p.el.notesData.style.overflowY = "auto";
+							p.el.notesData.style.display = "";
 
-								if(app.notes.id == "") {
-									if(app.editor.fileSelected !="") {
-										loadNotes(app.editor.fileSelected);
-									}
-								} else {
-									var context = {
-										args : {
-											view : "interact",
-											id : app.notes.id
-										}
-									};
-									p.$.appNotes.elementsClear();
-									p.$.appNotes.init(context);
+							if(app.notes.id == "") {
+								if(app.editor.fileSelected !="") {
+									loadNotes(app.editor.fileSelected);
 								}
-								// load notes
-								app.notes.active = true;
 							} else {
-								p.el.notesContainer.style.top = (window.innerHeight - 57) + "px";
-								p.el.notesContainer.style.height = "38px";
-								p.$.notesData.elementsClear();
-								p.el.notesData.style.display = "none";
-								app.notes.active = false;
-							}
-							
-						});
-						function loadNotes(path) {
-							if(!(path in app.notes.cache)) {
-								Import({url:"/notes/create",method:"post",data:{
-									title : "file",
-									reference : path
-								}})
-								.done(function(data) {
-									
-									data = JSON.parse(data);
-									if(data.result) {
-										app.notes.id = data.id;
-										app.notes.cache[path] = data.id;
-
-										var context = {
-											args : {
-												view : "interact",
-												id : data.id
-											}
-										};
-										p.$.appNotes.elementsClear();
-										p.$.appNotes.init(context);
-
-									} else {
-										alert("failed to create a note.");
-									}
-								})
-								.send();
-							} else {
-								var id = app.notes.cache[path];
-								app.notes.id = id;
-
 								var context = {
 									args : {
 										view : "interact",
-										id : id
+										id : app.notes.id
 									}
 								};
 								p.$.appNotes.elementsClear();
 								p.$.appNotes.init(context);
-
 							}
+							// load notes
+							app.notes.active = true;
+						}
+						function closeNotes() {
+							p.el.notesContainer.style.top = (window.innerHeight - 57) + "px";
+							p.el.notesContainer.style.height = "38px";
+							p.$.notesData.elementsClear();
+							p.el.notesData.style.display = "none";
+							app.notes.active = false;
+						}
+						p.el.notesTitle.addEventListener("click",function() {
+							if(!app.notes.active) {
+								openNotes();
+							} else {
+								closeNotes();
+							}
+						});
+						function loadNotes(path) {
+							
+							Import({url:"/notes/create",method:"post",data:{
+								title : "file",
+								reference : path
+							}})
+							.done(function(data) {
+								
+								data = JSON.parse(data);
+								if(data.result) {
+									app.notes.id = data.id;
+									app.notes.cache[path] = data.id;
+
+									var context = {
+										args : {
+											view : "interact",
+											id : data.id
+										}
+									};
+									p.$.appNotes.elementsClear();
+									p.$.appNotes.init(context);
+
+								} else {
+									alert("failed to create a note.");
+								}
+							})
+							.send();
+							
 						}
 						function loadFileOnEditor(path) {
 							Import({url:"/load",data:{file:escape(path)}})
@@ -669,7 +664,9 @@ Class.define("AppFileManager",{
 							var td = tr.$.elementPush("td_"+file,"td",{
 								class : { add : ["groupDir","borderBottom"] }
 							});
-							td.$.elementSetPacket("Server");
+							td.el.style.display = "flex";
+							td.el.style.cursor = "default";
+							td.$.elementSetPacket("<span style='flex:1;'>Server</span><span style='font-size:10px;'>(context menu)</span>");
 							setContext(td.el,"Server",{ sourceType : "server", folder : true, path : "." });
 							
 							

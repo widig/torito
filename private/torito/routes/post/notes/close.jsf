@@ -15,6 +15,12 @@
             var qs = require('querystring');
             var post = qs.parse(body.join(""));
 
+            if(!(req.session.logged)) {
+                res.send(JSON.stringify({result:false,msg:"not logged."}));
+                res.end();
+                return;
+            }
+            
             target = ["session","notes"];
             var p = req;
             for(var x = 0; x < target.length;x++) {

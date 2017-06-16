@@ -15,6 +15,7 @@
             var qs = require('querystring');
             var post = qs.parse(body.join(""));
             var ret = [];
+
             if(!(req.session.logged)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
                 res.end();
@@ -119,23 +120,20 @@
                                     return;
                                 }
                             }
-                            p.replies.push({
-                                user : req.session.username,
-                                note : post.id,
-                                date : new Date(),
-                                enabled : true,
-                                message : {
-                                    type : "txt",
-                                    raw : raw,
-                                    value : post.message
-                                },
-                                replies : []
-                            });
-                            base.version += 1;
-                            base.save();
-                            res.json({result : true});
-                            res.end();
-                            return;
+                            if( p.user == req.session.username ) {
+                                p.message.raw = raw;
+                                p.message.value = post.message;
+                                p.date = new Date();
+                                base.version += 1;
+                                base.save();
+                                res.json({result : true});
+                                res.end();
+                                return;
+                            } else {
+                                res.json({result:false});
+                                res.end();
+                                return;
+                            }
                         } else {
                             res.json({result:false});
                             res.end();
@@ -149,21 +147,7 @@
                     return;
                 }
             } else {
-                target[post.id].root.push({
-                    user : req.session.username,
-                    note : post.id, 
-                    date : new Date(),
-                    enabled : true,
-                    message : {
-                        type : "txt",
-                        raw : raw,
-                        value : post.message
-                    },
-                    replies : []
-                });
-                base.version += 1;
-                base.save();
-                res.json({result : true });
+                res.json({result : false });
                 res.end();
                 return;
             }
