@@ -9,7 +9,7 @@ With Torito you can create routes to Torito.
 
 With Torito you can manage files that are in '.'
 
-With Torito you can create web components.
+With Torito you can create web components. Torito interface is an example of use its components.
 
 With Torito you can take notes on any file in Torito.
 
