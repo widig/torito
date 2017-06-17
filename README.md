@@ -9,11 +9,11 @@ With Torito you can edit Torito source.
 
 With Torito you can create routes to Torito.
 
-With Torito you can manage files.
+With Torito you can manage files that are in '.'
 
 With Torito you can create web components.
 
-With Torito you can take notes on your files.
+With Torito you can take notes on any file in Torito.
 
 
 ## Getting started:
