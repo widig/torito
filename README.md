@@ -1,7 +1,7 @@
 ## this is alpha version, so don't use it. just for tests purposes.
 
 
-# Torito
+# Torito - the best meta tool I ever used.
 
 Another "Web Manager" to handle assets. 
 
