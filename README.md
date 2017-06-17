@@ -3,8 +3,6 @@
 
 # Torito - the best meta tool I ever used.
 
-Another "Web Manager" to handle assets. 
-
 With Torito you can edit Torito source.
 
 With Torito you can create routes to Torito.
