@@ -43,5 +43,24 @@ folder structure
       
 ### private/torito/acl
 
-stores the access control list
+stores the access control list data.
 
+### private/torito/client
+
+stores the web interface .
+
+### private/torito/includes
+
+stores the allowed server modules.
+
+### private/torito/lib
+
+stores the server modules.
+
+### private/torito/notes
+
+stores the notes.
+
+### private/torito/routes
+
+stores the routes.
