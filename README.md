@@ -7,7 +7,9 @@ Another "Web Manager" to handle assets.
 
 With Torito you can edit Torito source.
 
-With Torito you can create routes to Torito Web Server.
+With Torito you can create routes to Torito.
+
+With Torito you can manage files.
 
 With Torito you can create web components.
 
@@ -29,9 +31,7 @@ if you need to change it, edit on ./index.js
 username: root
 password: password
 
-## Structure
-
-folder structure
+## Folder Structure
 
     private/torito
         acl
@@ -64,3 +64,24 @@ stores the notes.
 ### private/torito/routes
 
 stores the routes.
+
+## Web Server Route Structure
+
+    post
+        /session/list
+        /session/ownlevel
+        /session/ownname
+        /session/remove
+        /file/dir
+        /file/mkdir
+        /file/rm
+        /file/rmdir
+        /file/touch
+        /file/update
+        /route/list
+        /route/get
+        /routes/install
+        /route/remove
+        
+        
+
