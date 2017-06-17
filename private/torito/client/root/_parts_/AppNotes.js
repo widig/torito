@@ -1,4 +1,5 @@
 
+
 Class.define("AppNotesInput",{
     from : ["WithDOMElements2"],
     ctor : function() {
@@ -14,6 +15,7 @@ Class.define("AppNotesInput",{
                 value : ""
             };
             var p = this.elementSetPacket(
+                
                 "<div style='display:flex;margin-bottom:2px;'>" +
                     "<div id='setText' style='padding:5px;background-color:white;color:black;border:solid 1px #f00;cursor:pointer;margin-right:5px;'>text</div>" +
                     "<div id='setUrl' style='padding:5px;background-color:white;color:black;border:solid 1px #000;cursor:pointer;'>url</div>" +

@@ -10,7 +10,7 @@ Class.define("ServerMenu",{
                             "<tr>"+
                                 "<td id='menuFiles' class='global-menu-item' align='right' style='font-size:30px;'>Server</td>" +
                             "</tr>"+
-                            "<tr>"+
+                            "<tr>"+ 
                                 "<td id='menuFiles' class='global-menu-item clickable' align='right'>Files</td>" +
                             "</tr>"+
                             "<tr>"+
@@ -40,7 +40,12 @@ Class.define("ServerMenu",{
             this.menu = { $ : p.$.menu, el: p.el.menu };
             var self = this;
             p.el.menuFiles.addEventListener("click",function() {
-                History.go("#manage:system=files");
+                var p = localStorage.getItem("manage.files.last");
+                if(p!=null) {
+                    History.go(p);
+                } else {
+                    History.go("#manage:system=files");
+                }
                 self.hide();
             });
             p.el.menuRoutes.addEventListener("click",function() {

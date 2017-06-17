@@ -46,12 +46,7 @@ Class.define("AppRouter",{
                     "</div>"+
                 "</div>"
             );
-            this.hide = function() {
-                p.el.app_router.style.display = "none";
-            }
-            this.show = function() {
-                p.el.app_router.style.display = "";
-            }
+            
             var app = {
                 placeholders : {}
             };
@@ -80,26 +75,26 @@ Class.define("AppRouter",{
                 }
             };
             
-            function openRoute(data,method,path) {
-
-                selected.data = data;
+            function openRoute(method,path) {
                 selected.method = method;
                 selected.path = path;
-
                 Import({url:"/route/get",method:"post",data: {path : path }})
                 .done(function(data){
+                    
                     data = JSON.parse(data);
                     if(data.result) {
-                        //selected.data = data;
+                        
                         selected.method = method;
                         selected.path = path;
 
                         p.$.title.elementSetPacket(method + ":" + path);
                         cache[ selected.method][ selected.path ] = data.value[path].code;
                         codeEditor.setValue(data.value[path].code);
+                        
+                        
 
                     } else {
-                        selected.data = "";
+                        
                         selected.method = "";
                         selected.path = "";
                         alert("can't get route '" + path + "'.");
@@ -140,7 +135,7 @@ Class.define("AppRouter",{
                                     selected.target.tr.removeChild( selected.target.td );
                                     selected.target.table.removeChild( selected.target.tr );
                                     //window.location.reload();
-                                    openRoute(selected.data,"get","/");
+                                    openRoute("get","/");
                                 }
                             })
                             .send();
@@ -232,87 +227,63 @@ Class.define("AppRouter",{
                     })
                     .send();
             });
-            function setRouteClick(target,data,method,path) {
-                target.td.addEventListener("click",function() {
-                    openRoute(data,method,path);
-                });
-                target.td.addEventListener("mouseup",function(event) {
-                    if(event.button == 2) {
-                        
-                        var obj = p.el.contextRoute;
-                        //alert(obj);
-                        selected.data = data;
-                        selected.method = method;
-                        selected.path = path;
-                        selected.target = target;
-                        obj.style.position = "absolute";
-                        obj.style.left = (window.mousePos.x-10) + "px";
-                        obj.style.top = (window.mousePos.y-10) + "px";
-                        obj.style.display = "none";
-                        obj.style.display = "";
-                        cancelCmnu = 1;
-                        obj.addEventListener("mouseleave",function() {
-                            obj.style.display = "none";
-                            cancelCmnu = 0;
-                        });
-                    }
-                });
-            }
-            
             function load_route_method_path_from_cache(method,path) {
-                
-                var tr = app.placeholders[method].$.elementPush("tr_"+method+"_"+path,"tr");
-                var td = tr.$.elementPush("td_"+method+"_"+path,"td",{
-                    class : { add : ["button","borderBottom"] }
-                });
-                td.$.elementSetPacket(path);
-                
-                td.el.addEventListener("click",function() {
-                    
-                    openRoute(cache,method,path);
-                    
-                        
-                    
-                });
-                td.el.addEventListener("mouseup",function(event) {
-                    if(event.button == 2) {
-                        
-                        var obj = p.el.contextRoute;
-                        
-                        selected.data = cache;
-                        selected.method = method;
-                        selected.path = path;
-                        selected.target = {
-                            td : td.el,
-                            tr: tr.el,
-                            table : app.table
-                        };
-                        obj.style.position = "absolute";
-                        obj.style.left = (window.mousePos.x-10) + "px";
-                        obj.style.top = (window.mousePos.y-10) + "px";
-                        obj.style.display = "none";
-                        obj.style.display = "";
-                        cancelCmnu = 1;
 
-                        function track_click() {
+                if(!app["table_title_"+method + "_" + path]) {
+                    var tr = app.placeholders[method].$.elementPush("tr_"+method+"_"+path,"tr");
+                    var td = tr.$.elementPush("td_"+method+"_"+path,"td",{
+                        class : { add : ["button","borderBottom"] }
+                    });
+                    td.$.elementSetPacket(path);
+                    app["table_title_"+method + "_" + path] = {
+                        tr : tr,
+                        td : td
+                    };
+                    td.el.addEventListener("click",function() {
+                        History.go("#manage:system=router&method=" + method + "&path=" + path);
+                        return;
+                        //openRoute(method,path);
+                    });
+                    td.el.addEventListener("mouseup",function(event) {
+                        if(event.button == 2) {
+                            
+                            var obj = p.el.contextRoute;
+                            
+                            
+                            selected.method = method;
+                            selected.path = path;
+                            selected.target = {
+                                td : td.el,
+                                tr: tr.el,
+                                table : app.table
+                            };
+                            obj.style.position = "absolute";
+                            obj.style.left = (window.mousePos.x-10) + "px";
+                            obj.style.top = (window.mousePos.y-10) + "px";
                             obj.style.display = "none";
-                            cancelCmnu = 0;
-                            UI.Window.off("click",track_click);
-                            UI.Window.off("keydown",track_keyboard);
-                        }
-                        function track_keyboard(e) {
-                            if(e.keyCode == 27) {
+                            obj.style.display = "";
+                            cancelCmnu = 1;
+
+                            function track_click() {
                                 obj.style.display = "none";
                                 cancelCmnu = 0;
                                 UI.Window.off("click",track_click);
                                 UI.Window.off("keydown",track_keyboard);
                             }
-                        }
-                        UI.Window.on("click",track_click);
-                        UI.Window.on("keydown",track_keyboard);
+                            function track_keyboard(e) {
+                                if(e.keyCode == 27) {
+                                    obj.style.display = "none";
+                                    cancelCmnu = 0;
+                                    UI.Window.off("click",track_click);
+                                    UI.Window.off("keydown",track_keyboard);
+                                }
+                            }
+                            UI.Window.on("click",track_click);
+                            UI.Window.on("keydown",track_keyboard);
 
-                    }
-                });
+                        }
+                    });
+                }
                 
             }
             function load_route_method_list_from_cache(method) {
@@ -369,6 +340,8 @@ Class.define("AppRouter",{
                         }
                     });
                     app.table = t;
+                } else {
+                    //p.$.dir.elementsClear();
                 }
                 for(var method in cache) {
                     load_route_method_list_from_cache(method);
@@ -381,26 +354,35 @@ Class.define("AppRouter",{
                     
                     cache = data;
                     load_route_list_from_cache();
-                    
-                    require(['vs/editor/editor.main'], function() {
-                        var editorContainer = p.el.editor;
-                        codeEditor = monaco.editor.create(editorContainer, {
-                            value: "",
-                            language: "javascript"
+                    if(codeEditor == null) {
+                        require(['vs/editor/editor.main'], function() {
+                            var editorContainer = p.el.editor;
+                            codeEditor = monaco.editor.create(editorContainer, {
+                                value: "",
+                                language: "javascript"
+                            });
+                            codeEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, function() {
+                                saveRoute();
+                            });
+                            //alert("method:" + context.routes.method + ",path:'"+context.routes.path+"'");
+                            openRoute(context.routes.method,context.routes.path);	
+                            i.resize();
                         });
-                        codeEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, function() {
-                            saveRoute();
-                        });
-                        openRoute(cache,"get","/");	
+                    } else {
+                        openRoute(context.routes.method,context.routes.path);	
                         i.resize();
-                    });
-                    
-                    
+                    }
                 })
                 .send();
             }
             load_route_list_from_server();
-            
+            this.hide = function() {
+                p.el.app_router.style.display = "none";
+            }
+            this.show = function(context) {
+                load_route_list_from_server();
+                p.el.app_router.style.display = "";
+            }
         }
     }
 });

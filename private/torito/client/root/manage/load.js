@@ -54,6 +54,15 @@ var app = this.app;
 
 if("system" in args) {
     if(args.system == "router") {
+        if(!("routes" in app)) {
+            app.routes = {};
+        }
+        if(!("path" in args) || !("method" in args)) {
+            History.go("#manage:system=router&method=get&path=/");
+            return;
+        }
+        app.routes.method = args.method;
+        app.routes.path = args.path;
         this.serverContainer.$.load(this.app,"router");
     } else if(args.system == "files") {
         if(!("files" in app)) {

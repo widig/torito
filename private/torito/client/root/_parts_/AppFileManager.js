@@ -620,7 +620,15 @@ Class.define("AppFileManager",{
 						}
 						app.editor.loadPositions();
 						app.editor.main.focus();
+
+						var url = "" + window.location;
+						url = url.split("#");
+						url.shift();
+						url = url.join("#");
+						localStorage.setItem("manage.files.last","#" + url);
 						
+						// set file to load on main menu
+						// add to recently used files
 					}
 					
 				})
