@@ -1,4 +1,4 @@
-## this is alpha version, so don't use it. just for tests purposes.
+## this is alpha version, so don't use it in production. just for tests purposes.
 
 
 # Torito - the best meta tool I ever used.
