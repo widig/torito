@@ -31,6 +31,7 @@ password: password
 
 ## Structure
 
+folder structure
 
     private/torito
         acl
@@ -40,3 +41,7 @@ password: password
         notes
         routes
       
+### private/torito/acl
+
+stores the access control list
+
