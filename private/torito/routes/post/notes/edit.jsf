@@ -34,7 +34,7 @@
             }
             target = p;
             var raw = "";
-            
+            var obj_message = null;
             if(!("id" in post)) {
                 res.json({result : false, msg:"A"});
                 res.end();
@@ -47,35 +47,48 @@
             } else {
                 // prepare post.message
                 post.message = mod.codecs.hex2str( post.message );
-                
-                raw = post.message; // used to hold value
 
-                post.message = post.message // used to hold presentation
-                    .split("&").join("&amp;")
-                    .split(";").join("&semi;")
-                    .split("<").join("&lt;")
-                    .split(">").join("&gt;")
-                    .split("#").join("&num;")
-                    .split(":").join("&colon;")
-                    .split(",").join("&comma;")
-                    .split(".").join("&period;")
-                    .split("=").join("&equals;")
-                    .split("?").join("&quest;")
-                    .split("(").join("&lpar;")
-                    .split(")").join("&rpar;")
-                    .split("+").join("&plus;")
-                    .split("$").join("&dollar;")
-                    .split("\"").join("&quot;")
-                    .split("'").join("&apos;")
-                    .split("[").join("&lbrack;")
-                    .split("]").join("&rbrack;")
-                    .split("{").join("&lbrace;")
-                    .split("}").join("&rbrace;")
-                    .split("|").join("&vert;")
-                    .split("*").join("&ast;")
-                    .split("!").join("&excl;")
-                    ;
-                post.message = "<pre>" + post.message.split("\r").join("").split("\n").join("<br/>").split("\t").join("&nbsp;&nbsp;&nbsp;&nbsp;") + "</pre>";
+                obj_message = JSON.parse(post.message);
+                if( obj_message.type == "text/plain" ) {
+                    post.message = obj_message.value;
+                    raw = post.message; // used to hold value
+                    
+                    post.message = post.message // used to hold presentation
+                        .split("&").join("&amp;")
+                        .split(";").join("&semi;")
+                        .split("<").join("&lt;")
+                        .split(">").join("&gt;")
+                        .split("#").join("&num;")
+                        .split(":").join("&colon;")
+                        .split(",").join("&comma;")
+                        .split(".").join("&period;")
+                        .split("=").join("&equals;")
+                        .split("?").join("&quest;")
+                        .split("(").join("&lpar;")
+                        .split(")").join("&rpar;")
+                        .split("+").join("&plus;")
+                        .split("$").join("&dollar;")
+                        .split("\"").join("&quot;")
+                        .split("'").join("&apos;")
+                        .split("[").join("&lbrack;")
+                        .split("]").join("&rbrack;")
+                        .split("{").join("&lbrace;")
+                        .split("}").join("&rbrace;")
+                        .split("|").join("&vert;")
+                        .split("*").join("&ast;")
+                        .split("!").join("&excl;")
+                        ;
+                    post.message = "<pre>" + post.message.split("\r").join("").split("\n").join("<br/>").split("\t").join("&nbsp;&nbsp;&nbsp;&nbsp;") + "</pre>";
+                    obj_message.value = post.message;
+
+                } else if( _obj.type == "text/json-url") {
+                    obj_message.raw = obj_message.value;
+
+                } else {
+                    res.json({result : false, msg:"Not Implemented"});
+                    res.end();
+                    return;
+                }
                 
             }
             if(!( post.id in target)) {
@@ -121,8 +134,8 @@
                                 }
                             }
                             if( p.user == req.session.username ) {
-                                p.message.raw = raw;
-                                p.message.value = post.message;
+                                p.message.raw = obj_message.raw;
+                                p.message.value = obj_message.value;
                                 p.date = new Date();
                                 base.version += 1;
                                 base.save();

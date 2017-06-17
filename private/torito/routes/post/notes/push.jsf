@@ -1,3 +1,4 @@
+
 (function() {
     return function (req,res) {
         var body = [];
@@ -33,7 +34,7 @@
             }
             target = p;
             var raw = "";
-            
+            var obj_message = null;
             if(!("id" in post)) {
                 res.json({result : false, msg:"A"});
                 res.end();
@@ -47,35 +48,46 @@
                 // prepare post.message
                 post.message = mod.codecs.hex2str( post.message );
                 
-                raw = post.message; // used to hold value
-
-                post.message = post.message // used to hold presentation
-                    .split("&").join("&amp;")
-                    .split(";").join("&semi;")
-                    .split("<").join("&lt;")
-                    .split(">").join("&gt;")
-                    .split("#").join("&num;")
-                    .split(":").join("&colon;")
-                    .split(",").join("&comma;")
-                    .split(".").join("&period;")
-                    .split("=").join("&equals;")
-                    .split("?").join("&quest;")
-                    .split("(").join("&lpar;")
-                    .split(")").join("&rpar;")
-                    .split("+").join("&plus;")
-                    .split("$").join("&dollar;")
-                    .split("\"").join("&quot;")
-                    .split("'").join("&apos;")
-                    .split("[").join("&lbrack;")
-                    .split("]").join("&rbrack;")
-                    .split("{").join("&lbrace;")
-                    .split("}").join("&rbrace;")
-                    .split("|").join("&vert;")
-                    .split("*").join("&ast;")
-                    .split("!").join("&excl;")
-                    ;
-                post.message = "<pre>" + post.message.split("\r").join("").split("\n").join("<br/>").split("\t").join("&nbsp;&nbsp;&nbsp;&nbsp;") + "</pre>";
-                
+                obj_message = JSON.parse(post.message);
+                if( obj_message.type == "text/plain" ) {
+                    post.message = obj_message.value;
+                    raw = post.message; // used to hold value
+                    obj_message.raw = raw;
+                    post.message = post.message // used to hold presentation
+                        .split("&").join("&amp;")
+                        .split(";").join("&semi;")
+                        .split("<").join("&lt;")
+                        .split(">").join("&gt;")
+                        .split("#").join("&num;")
+                        .split(":").join("&colon;")
+                        .split(",").join("&comma;")
+                        .split(".").join("&period;")
+                        .split("=").join("&equals;")
+                        .split("?").join("&quest;")
+                        .split("(").join("&lpar;")
+                        .split(")").join("&rpar;")
+                        .split("+").join("&plus;")
+                        .split("$").join("&dollar;")
+                        .split("\"").join("&quot;")
+                        .split("'").join("&apos;")
+                        .split("[").join("&lbrack;")
+                        .split("]").join("&rbrack;")
+                        .split("{").join("&lbrace;")
+                        .split("}").join("&rbrace;")
+                        .split("|").join("&vert;")
+                        .split("*").join("&ast;")
+                        .split("!").join("&excl;")
+                        ;
+                    post.message = "<pre>" + post.message.split("\r").join("").split("\n").join("<br/>").split("\t").join("&nbsp;&nbsp;&nbsp;&nbsp;") + "</pre>";
+                    obj_message.value = post.message;
+                } else if( obj_message.type == "text/json-url") {
+                    obj_message.raw = obj_message.value;
+                    
+                } else {
+                    res.json({result : false, msg:"Not Implemented"});
+                    res.end();
+                    return;
+                }
             }
             if(!( post.id in target)) {
                 res.json({result:false, msg : "C"});
@@ -124,11 +136,7 @@
                                 note : post.id,
                                 date : new Date(),
                                 enabled : true,
-                                message : {
-                                    type : "txt",
-                                    raw : raw,
-                                    value : post.message
-                                },
+                                message : obj_message,
                                 replies : []
                             });
                             base.version += 1;
@@ -154,11 +162,7 @@
                     note : post.id, 
                     date : new Date(),
                     enabled : true,
-                    message : {
-                        type : "txt",
-                        raw : raw,
-                        value : post.message
-                    },
+                    message : obj_message,
                     replies : []
                 });
                 base.version += 1;
