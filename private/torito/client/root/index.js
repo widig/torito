@@ -7,6 +7,10 @@ webfile.import("/public/page/torito/js/import.js","js");
 webfile.import("/public/page/torito/js/querystring.js","js");
 webfile.import("/public/page/torito/js/SHA1.js","js");
 webfile.import("/public/page/torito/js/Class.js","js");
+webfile.import("/public/page/torito/js/Download.js","js");
+
+webfile.import("/public/control/jszip/dist/jszip.min.js");
+
 
 webfile.import("/public/control/monaco/dev/vs/editor/editor.main.css","css");
 

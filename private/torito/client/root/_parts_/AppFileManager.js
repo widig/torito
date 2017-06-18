@@ -38,6 +38,9 @@ Class.define("AppFileManager",{
 								"<td id='contextServerNewDirectory' class='button'>new directory</td>"+
 							"</tr>"+
 							"<tr>"+
+								"<td id='contextServerZipBackup' class='button'>zip backup</td>"+
+							"</tr>"+
+							"<tr>"+
 								"<td class='button' style='height:20px;'><div>upload file</div><div style='height:0px;'><input id='contextServerUploadFile' type='file' style='position:relative;left:-20px;top:-20px; width:150px;opacity:0;'/></div></td>"+
 							"</tr>"+
 						"</table>"+
@@ -256,6 +259,105 @@ Class.define("AppFileManager",{
 					}
 				})
 				.send();
+			});
+			p.el.contextServerZipBackup.addEventListener("click",function() {
+
+				function zipFile(request) { // maybe can't download private, based on credentials
+					Import({url:"/load",data:{file:request.file}})
+					.done(function(data) {
+						var name = request.file.split("/").pop();
+						//console.log("file",request.file);
+						request.zip.file(name,data);
+						request.loaded = true;
+						request.date2 = new Date();
+					})
+					.fail(function() {
+						// error on zip
+						request.state = 1;
+					})
+					.send();
+				}
+				var requests = [];
+				var zip = new JSZip();
+				var zipThread = setInterval(function() {
+					for(var x = 0; x < requests.length;x++) {
+						if(requests[x].state == 1) {
+							// error on zip
+							clearInterval(zipThread);
+							requests.splice(0,requests.length);
+							alert("error");
+							return;
+						}
+					}
+					for(var x = 0; x < requests.length;x++) {
+						if(requests[x].loaded == false) {
+							return;
+						}
+					}
+					// ready to download
+					// cancel Thread
+					clearInterval(zipThread);
+					zip.generateAsync({type:"blob"})
+					.then(function(content) {
+						// see FileSaver.js
+						Download.go(content,"backup.zip");
+						//saveAs(content, "example.zip");
+					});
+				},500);
+				function zipFolder(request) {
+					Import({url:"/file/dir",method:"post",data:{dir:request.file}})
+					.done(function(data2) {
+						data2 = JSON.parse(data2);
+						if(data2.result) {
+							for(var file in data2.value ) {
+								if( data2.value[file] == 1 ) {
+									var r = {
+										zip : request.zip,
+										file : file,
+										state : 0,
+										type : "file",
+										loaded : false,
+										date : new Date()
+									};
+									requests.push(r);
+									zipFile(r);
+								} else if(data2.value[file] == 0) {
+									var name = file.split("/").pop();
+									var f = request.zip.folder(name);
+									var r = {
+										zip : f,
+										state : 0,
+										file : file,
+										type : "folder",
+										loaded : false,
+										date : new Date()
+									};
+									requests.push(r);
+									zipFolder( r );
+								}
+							}
+							request.loaded = true;
+							request.date2 = new Date();
+							//console.log("folder",request.file);
+						} else {
+							// error on zip
+							request.state = 1;
+						}
+					})
+					.fail(function() {
+						request.state = 1;
+					})
+					.send();
+				}
+				zipFolder({
+					zip : zip,
+					state : 0,
+					file : context.files.server,
+					type : "folder",
+					loaded : false,
+					date : new Date()
+				});
+
 			});
 			p.el.contextServerUploadFile.addEventListener("change",function() {
 				app.menu.dispose();
