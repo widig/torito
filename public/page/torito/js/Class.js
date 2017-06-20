@@ -3405,7 +3405,7 @@ Class.define("History",{
 					force = true;
 					console.log("force true");
 				}
-				console.log( "HISTORY 1:",self.extractHash(to),this.getHash(),to_base,hash_base);
+				//console.log( "HISTORY 1:",self.extractHash(to),this.getHash(),to_base,hash_base);
 				if( to_base !== hash_base ) {
 					//console.log("HISTORY 2");
 					//console.log("target hash:",self.extractHash(to)," current hash:",this.getHash());
@@ -3425,7 +3425,7 @@ Class.define("History",{
 					self.setHash(to);
 					self.setState(to_base, to_args );
 				} else if(true || force) {
-					console.log("HISTORY 4");
+					//console.log("HISTORY 4");
 					//console.log("history C",to_base,opt);	
 					
 					if(self.last_state != to_base || force) {

@@ -16,7 +16,8 @@
                 res.end();
                 return;
             }
-            if("path" in post) {
+            // method in post
+            if("path" in post && "method" in post) {
                 var ret = {};
                 var found = false;
                 for(var item in app._router.stack) {
@@ -24,7 +25,7 @@
                     if(i.route) {
                         if(i.route.path && i.route.methods) {
                             for(var m in i.route.methods) {
-                                if(m in builtin) {
+                                if(m == post.method && m in builtin) {
                                     var _path = i.route.path;
                                     _path = _path.split("/");
                                     for(var x = 0; x < _path.length;x++) {

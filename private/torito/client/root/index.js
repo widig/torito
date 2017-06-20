@@ -1,4 +1,4 @@
-console.log("OK?");
+
 
 webfile.import(__dirname + "/default.css","css");
 
@@ -21,29 +21,21 @@ webfile.script("var require={ paths : { vs : '/public/control/monaco/dev/vs'} };
 webfile.import("/public/control/monaco/dev/vs/loader.js","js");
 
 
-webfile.import(__dirname + "/_parts_/AppAccounts.js","js");
-webfile.import(__dirname + "/_parts_/AppFileManager.js","js");
-webfile.import(__dirname + "/_parts_/AppLogout.js","js");
-webfile.import(__dirname + "/_parts_/AppRouter.js","js");
-webfile.import(__dirname + "/_parts_/AppTerminal.js","js");
-webfile.import(__dirname + "/_parts_/AppNotes.js","js");
-webfile.import(__dirname + "/_parts_/Mask.js","js");
-webfile.import(__dirname + "/_parts_/ServerContainer.js","js");
-webfile.import(__dirname + "/_parts_/ServerMenu.js","js");
-webfile.import(__dirname + "/_parts_/UserContainer.js","js");
-webfile.import(__dirname + "/_parts_/UserMenu.js","js");
-// best use of this is to static map, part can be replaced by import
+webfile.import(__dirname + "/parts/AppAccounts.js","js");
+webfile.import(__dirname + "/parts/AppFileManager.js","js");
+webfile.import(__dirname + "/parts/AppLogout.js","js");
+webfile.import(__dirname + "/parts/AppRouter.js","js");
+webfile.import(__dirname + "/parts/AppTerminal.js","js");
+webfile.import(__dirname + "/parts/AppNotes.js","js");
+webfile.import(__dirname + "/parts/Mask.js","js");
+webfile.import(__dirname + "/parts/ServerContainer.js","js");
+webfile.import(__dirname + "/parts/ServerMenu.js","js");
+webfile.import(__dirname + "/parts/UserContainer.js","js");
+webfile.import(__dirname + "/parts/UserMenu.js","js");
+
 
 webfile.page("manage",__dirname);
 
-/*
-webfile.page("home",__dirname);
-webfile.page("store",__dirname);
-webfile.page("profile",__dirname);
-*/
-
-
-// page and imports can be componentized, just like bower
 
 webfile.start(__dirname + "/main.js");
 

@@ -27,6 +27,7 @@
             var arr = post.dir;
             var parts = arr.split("/");
             var current_path = ".";
+            console.log(arr);
             for(var x = 1; x < parts.length;x++) {
                 var link_file = current_path + "/" + parts[x] + ".link";
                 if( mod.fs.existsSync( link_file ) ) {
@@ -43,20 +44,24 @@
                     var filename2 = unescape(current_path);
                     try {
                         if( mod.fs.lstatSync(filename2).isDirectory() ) {
+                            console.log("FAIL");
                             res.send(JSON.stringify({result:false,msg:"already exists.(1)"}));
                             res.end();
                             return;
                         } else if( mod.fs.lstatSync(filename2).isFile() ) {
+                            console.log("FAIL");
                             res.send(JSON.stringify({result:false,msg:"already exists.(2)"}));
                             res.end();
                             return;
                         } else {
+                            console.log("FAIL");
                             res.send(JSON.stringify({result:false,msg:"already exists.(3)"}));
                             res.end();
                             return;
                         }
                     } catch(e) {
                         // not found
+                        console.log("OK");
                         mod.fs.mkdirSync(filename2);	
                         res.send(JSON.stringify({result:true}));
                         res.end();
@@ -64,7 +69,11 @@
                     }
                 }
             }
-            
+            console.log("FAIL");
+            res.json({result:false});
+            res.end();
+            return;
+
         });
 
         

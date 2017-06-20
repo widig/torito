@@ -62,31 +62,36 @@ Import.prototype.send = function() {
 				result = JSON.parse(result);
 			}
 			self.doneCallback && self.doneCallback.apply(self.host, [result, self.info]);
-		} else if(self.xhr.readyState == 4) {
+		} else if(self.xhr.readyState == 4 && self.xhr.status == 0) {
 			self.failCallback && self.failCallback.apply(self.host, [self.info]);
+		} else {
+			//console.log(self.xhr.readyState + ":" + self.xhr.status);
 		}
 		self.alwaysCallback && self.alwaysCallback.apply(self.host, [self.info]);
 	}
-	if(this.info.method == 'get') {
-		this.xhr.open("GET", this.info.url + this.info.formatArguments(), true);
-	} else if(this.info.method=="post"){
-		this.xhr.open("POST", this.info.url, true);
-		this.setHeaders({
-			'X-Requested-With': 'XMLHttpRequest',
-			'Content-type': 'application/x-www-form-urlencoded'
-		});
-	} else {
-		this.xhr.open("GET", this.info.url + this.info.formatArguments(), true);
+	this._send = function() {
+		if(this.info.method == 'get') {
+			this.xhr.open("GET", this.info.url + this.info.formatArguments(), true);
+		} else if(this.info.method=="post"){
+			this.xhr.open("POST", this.info.url, true);
+			this.setHeaders({
+				'X-Requested-With': 'XMLHttpRequest',
+				'Content-type': 'application/x-www-form-urlencoded'
+			});
+		} else {
+			this.xhr.open("GET", this.info.url + this.info.formatArguments(), true);
+		}
+		if(this.info.headers && typeof this.info.headers == 'object') {
+			for(var name in this.info.headers) this.xhr && this.xhr.setRequestHeader(name, this.info.headers[name]);
+		}
+		if(this.info.method=="post") {
+			var str = this.info.formatArguments();
+			self.xhr.send(this.info.formatArguments());
+		} else {
+			self.xhr.send();
+		}
 	}
-	if(this.info.headers && typeof this.info.headers == 'object') {
-		for(var name in this.info.headers) this.xhr && this.xhr.setRequestHeader(name, this.info.headers[name]);
-	}
-	if(this.info.method=="post") {
-		
-		self.xhr.send(this.info.formatArguments());
-	} else {
-		self.xhr.send();
-	}
+	this._send(); 
 	return this;
 };
 

@@ -1,0 +1,39 @@
+(function(){
+	return function(req,res){
+
+        if(!(req.session.logged) || (req.session.level != 0)) {
+            res.status(404).send("");
+            res.end();
+            return;
+        }
+
+        if(!("id" in req.query)) {
+            res.status(404).send("");
+            res.end();
+            return;
+        }
+
+        target = ["session","temporary"];
+        var p = req;
+        for(var x = 0; x < target.length;x++) {
+            if(target[x] in p) {
+                p = p[target[x]];
+            } else {
+                p[target[x]] = {};
+                p = p[target[x]];
+            }
+        }
+        target = p;
+
+        if(req.query.id in target) {
+            res.send(target[req.query.id].value);
+            res.end();
+            delete target[req.query.id];
+            return;
+        } else {
+            res.status(404).send("");
+            res.end();
+            return;
+        }
+    };
+})();

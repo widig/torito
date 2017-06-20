@@ -1,0 +1,194 @@
+(function(){
+	return function(req,res){ 
+
+        res.send( 
+            "<html>"+
+                "<body style='margin:0px;'>"+
+                    "<div style='background-color:blue;color:white;padding:10px;display:flex;'>"+
+                        "<div style='margin-right:10px;'>find</div><input type='text' style='flex:1;'/>"+
+                    "</div>" + 
+                    "<div style='padding:10px;'>"+
+                        "<div style='border:solid 1px #000;margin-bottom:10px;padding:10px;'>" +
+                            "<div style='font-size:30px;'>How Torito File System works</div>"+
+                            "<div>Example of Document Index:</div>"+
+                            "<div style='display:flex;'>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to zip backup a folder</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to zip restore a folder</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to upload a file into current folder</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to change folder</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to open a file</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                            "</div>"+
+                            "<div style='display:flex;'>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to create a new file</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to create a new folder</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to write a note</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to delete a file</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to create a link</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                            "</div>"+
+                            "<div style='display:flex;'>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to save a file</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to create a webfile</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Webfile : an javascript view of html document but not html language</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                            "</div>"+
+                            "<div style='display:flex;'>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Webfile : Pages and History</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How Torito Web Components works</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to make a model, an Wizard approach</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to insert a model ask into a page</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to view a model data</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                            "</div>" +
+                        "</div>" +
+                        
+                        "<div style='border:solid 1px #000;margin-bottom:10px;padding:10px;'>" +
+                            "<div style='font-size:30px;'>How Torito Routes works</div>"+
+                            "<div>Example of Document Index:</div>"+
+                            "<div style='display:flex;'>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Item1:</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Item2:</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Item2:</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Item2:</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                            "</div>" +
+                        "</div>" +
+
+                        "<div style='border:solid 1px #000;margin-bottom:10px;padding:10px;'>" +
+                            "<div style='font-size:30px;'>How Torito Notes works</div>"+
+                            "<div>Example of Document Index:</div>"+
+                            "<div style='display:flex;'>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Item1:</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Item2:</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Item2:</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Item2:</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                            "</div>" +
+                        "</div>" +
+
+                        "<div style='border:solid 1px #000;margin-bottom:10px;padding:10px;'>" +
+                            "<div style='font-size:30px;'>How Torito Accounts works</div>"+
+                            "<div>Example of Document Index:</div>"+
+                            "<div style='display:flex;'>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Item1:</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Item2:</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Item2:</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>Item2:</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                            "</div>" +
+                        "</div>" +
+                        "<div style='border:solid 1px #000;margin-bottom:10px;padding:10px;'>" +
+                            "<div style='font-size:30px;'>How Torito Docs works</div>"+
+                            "<div>Example of Document Index:</div>"+
+                            "<div style='display:flex;'>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to insert a Topic</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to insert a SubTopic</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to insert a Document</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                                "<div style='margin:10px;'>"+
+                                    "<div style='font-weight:bold;'>How to insert insert a markdown text on a Document</div>"+
+                                    "<div>description</div>"+
+                                "</div>"+
+                            "</div>" +
+                        "</div>" +
+
+
+                    "</div>"+
+                "</body>"+
+            "</html>" 
+        );
+	    res.end();
+    };
+})();

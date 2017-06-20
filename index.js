@@ -31,7 +31,7 @@ app.use(function (req, res, next) {
 	console.log("------------------------------------------------------------------------------------------------");
 	console.log('Request URL:', req.originalUrl,'Request Type:', req.method,'Request Params:', req.params,'Request Query:', req.query);
 	console.log("------------------------------------------------------------------------------------------------");
-	mod.session.print();
+	//mod.session.print();
 	var found = false;
 	//console.log(req.headers);
 	if("cookie" in req.headers) {
