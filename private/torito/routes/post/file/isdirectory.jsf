@@ -13,7 +13,6 @@
             var post = qs.parse(body.join(""));
             if(!(req.session.logged && req.session.level == 0)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 return;
             }
             if("path" in post) {
@@ -40,17 +39,15 @@
                                 result : true,
                                 value : val
                             });
-                            res.end();
+                            return;
                         } catch(e) {
                             res.json({ result : false });
-                            res.end();
                             return;
                         }
                     }
                 }
             } else {
                 res.json({ result : false });
-                res.end();
                 return;
             }
         });

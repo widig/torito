@@ -17,7 +17,6 @@
 
             if(!(req.session.logged)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 return;
             }
             
@@ -36,17 +35,14 @@
             
             if(!("id" in post)){
                 res.json({result:false});
-                res.end();
                 return;
             }
             if(!(post.id in target)) {
                 res.json({result:false});
-                res.end();
                 return;
             }
             delete target[post.id];
             res.json({result:true});
-            res.end();
             return;
             
             

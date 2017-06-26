@@ -17,17 +17,14 @@
 		        console.log(req.session.id);
                 if(!("username" in post && "password" in post)) {
                     res.json({result:false});
-                    res.end();
                     return;    
                 }
                 if(req.session.username != post.username) {
                     res.json({result:false});
-                    res.end();
                     return;
                 }
                 console.log("AUTO LOGIN");
                 res.json({result:true});
-                res.end();
                 return;
                 
             } else if("username" in post && "password" in post) {
@@ -44,21 +41,17 @@
                         mod.session.set(req.session.id,req.session);
 			
                         res.json({result:true});
-                        res.end();
                         return;
                     } else {
                         res.json({result:false});
-                        res.end();    
                         return;
                     }
                 } else {
                     res.json({result:false});
-                    res.end();
                     return;
                 }
             } else {
                 res.json({result:false,msg:"missing credentials."});
-                res.end();
                 return;
             }
             

@@ -25,21 +25,17 @@
                         // remove route
 
                         res.json({result:true});
-                        res.end();
                         return;
                     } else {
                         res.json({result:false});
-                        res.end();
                         return;
                     }
                 } else {
                     res.json({result:false});
-                    res.end();
                     return;
                 }
             } else {
                 res.json({result:false});
-                res.end();
                 return;
             }
         });

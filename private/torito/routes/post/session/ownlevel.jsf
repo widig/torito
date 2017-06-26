@@ -12,10 +12,10 @@
             var post = qs.parse(body.join(""));
             if(req.session.logged) {
                 res.send(JSON.stringify({ result:true, value : req.session.level}));
-                res.end();
+                return;
             } else {
                 res.send(JSON.stringify({ result:false }));
-                res.end();
+                return;
             }
         });
     }

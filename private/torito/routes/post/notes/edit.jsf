@@ -18,7 +18,6 @@
 
             if(!(req.session.logged)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 return;
             }
             
@@ -37,12 +36,10 @@
             var obj_message = null;
             if(!("id" in post)) {
                 res.json({result : false, msg:"A"});
-                res.end();
                 return;
             }
             if(!("message" in post)) {
                 res.json({result : false, msg:"B"});
-                res.end();
                 return;
             } else {
                 // prepare post.message
@@ -86,19 +83,16 @@
 
                 } else {
                     res.json({result : false, msg:"Not Implemented"});
-                    res.end();
                     return;
                 }
                 
             }
             if(!( post.id in target)) {
                 res.json({result:false, msg : "C"});
-                res.end();
                 return;
             }
             if(!("root" in target[post.id])) {
                 res.json({result:false, msg : "D"});
-                res.end();
                 return;
             }
             var base = target[post.id];
@@ -120,7 +114,6 @@
                                 p = p[ n ];
                             } else {
                                 res.json({result:false});
-                                res.end();
                                 return;
                             }
                             for(var x = 0; x < post.path.length;x++) {
@@ -129,7 +122,6 @@
                                     p = p.replies[n];
                                 } else {
                                     res.json({result:false});
-                                    res.end();
                                     return;
                                 }
                             }
@@ -140,28 +132,23 @@
                                 base.version += 1;
                                 base.save();
                                 res.json({result : true});
-                                res.end();
                                 return;
                             } else {
                                 res.json({result:false});
-                                res.end();
                                 return;
                             }
                         } else {
                             res.json({result:false});
-                            res.end();
                             return;
                         }
                     }
 
                 } catch(e) {
                     res.json({result:false});
-                    res.end();
                     return;
                 }
             } else {
                 res.json({result : false });
-                res.end();
                 return;
             }
 

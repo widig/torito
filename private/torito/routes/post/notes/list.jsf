@@ -21,7 +21,6 @@
 
             if(!(req.session.logged)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 return;
             }
             
@@ -39,23 +38,19 @@
             
             if(!("id" in post)) {
                 res.json({result:false,msg:"A"});
-                res.end();
                 return;
             }
             if(!(post.id in target)) {
                 res.json({result:false,msg:"B"});
-                res.end();
                 return;
             }
             var obj = target[ post.id ];
             if(obj) {
                 res.json({result : true, value : obj.root, title : obj.title, reference : obj.reference, version : obj.version });
                 //res.json({result:false});
-                res.end();
                 return;
             } else {
                 res.json({result:false,msg:"C"});
-                res.end();
                 return;
             }
 

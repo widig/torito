@@ -41,9 +41,9 @@ Class.define("ServerContainer",{
             
             var self = this;
             var arr = [
-                ["fileManager","accounts","router","notes","logout"], // input name
-                ["appFileManager","appAccounts","appRouter","appNotes","appLogout"], // variable of 
-                ["AppFileManager","AppAccounts","AppRouter","AppNotes","AppLogout"] // class
+                ["fileManager","accounts","router","notes","logout","services"], // input name
+                ["appFileManager","appAccounts","appRouter","appNotes","appLogout","appServices"], // variable of 
+                ["AppFileManager","AppAccounts","AppRouter","AppNotes","AppLogout","AppServices"] // class
             ];
             
             /*

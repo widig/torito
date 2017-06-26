@@ -16,11 +16,9 @@
                 var table = mod.fs.readFileSync(acl_table_file,"utf8");
                 table = JSON.parse(table);
                 res.json(table);
-                res.end();
                 return;
             } else {
                 res.json({result:false});
-                res.end();
                 return;
             }
 

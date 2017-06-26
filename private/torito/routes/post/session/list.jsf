@@ -14,10 +14,10 @@
             if(req.session.logged && req.session.level == 0) {
                 var data = mod.session.list();
                 res.send(JSON.stringify({ result : true, value : data }));
-                res.end();
+                return;
             } else {
                 res.send(JSON.stringify({result : false}));
-                res.end();
+                return;
             }
         });
     }

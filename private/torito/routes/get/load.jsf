@@ -10,12 +10,10 @@
                 for(var x = 1; x < parts.length;x++) {
                     if(parts[x] == "..") {
                         res.status(404).send("Sorry can't find that! Broken link. (0)");
-                        res.end();
                         return;
                     }
                     if(parts[x] == ".") {
                         res.status(404).send("Sorry can't find that! Broken link. (0)");
-                        res.end();
                         return;
                     }
                     if(!req.session.logged || req.session.level!=0) {
@@ -23,7 +21,6 @@
                             for(var y = 0; y < forbidden[x-1].length;y++) {
                                 if(parts[x] == forbidden[x-1][y]) {
                                     res.status(404).send("Sorry can't find that! Broken link. (*)");
-                                    res.end();
                                     return; 
                                 }
                             }
@@ -36,7 +33,6 @@
                             current_path = json.path;
                         } else {
                             res.status(404).send("Sorry can't find that! Broken link. (1)");
-                            res.end();
                             return;
                         }
                     } else {
@@ -50,11 +46,20 @@
                         if( mod.fs.existsSync(filename2) ) {
                             if( mod.fs.lstatSync(filename2).isDirectory() ) {
                                 res.status(404).send("Sorry can't find that! Broken link. (3)");
-                                res.end();
                                 return;
                             } else {
                                 var ext = filename2.split(".").pop();
-                                if( ext == "mp3" || ext == "mp4" || ext == "avi" || ext == "mpeg" || ext == "wav" || ext == "mp4" || ext == "jpg" || ext == "gif" || ext == "jpeg" || ext == "png") {
+                                if( ext == "mp3" || 
+                                    ext == "mp4" || 
+                                    ext == "avi" || 
+                                    ext == "mpeg" || 
+                                    ext == "wav" || 
+                                    ext == "mp4" || 
+                                    ext == "jpg" || 
+                                    ext == "gif" || 
+                                    ext == "jpeg" || 
+                                    ext == "png"
+                                ) {
                                     var readStream = mod.fs.createReadStream(filename2);
                                     readStream.pipe(res);
                                     readStream.on("finish",function() {
@@ -68,32 +73,27 @@
                                         var file = mod.fs.readFileSync(filename2,"utf8");
                                         sb.push( file );	
                                         res.send(sb.join(""));
-                                        res.end();
                                         return;
                                     } else {
                                         var file = mod.fs.readFileSync(filename2,"utf8");
                                         sb.push( file );	
                                         res.send(sb.join(""));
-                                        res.end();
                                         return;
                                     }
                                 }
                             }
                         } else {
                             res.status(404).send("Sorry can't find that! Broken link. (2)");
-                            res.end();
                             return;
                         }
                     }
                 }
             } else {
                 res.status(404).send("Sorry can't find that! Broken link. (4)");
-                res.end();
                 return;
             }
         } else {
             res.status(404).send("Sorry can't find that! Broken link. (3)");
-            res.end();
             return;
         }
     }

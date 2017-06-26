@@ -84,6 +84,9 @@ if("system" in args) {
         }
         app.accounts.view = args.view;
         this.serverContainer.$.load(this.app,"accounts");
+    } else if(args.system == "services") {
+        
+        this.serverContainer.$.load(this.app,"services");
     } else if(args.system == "logout") {
         this.serverContainer.$.load(this.app,"logout");
     } else if(args.system == "notes") {

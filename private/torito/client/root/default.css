@@ -146,7 +146,7 @@ body {
     left:0px;
     top:0px;
 }
-.menuRoutes , .menuFileManager, .menuAccounts {
+.menuRoutes , .menuFileManager, .menuAccounts, .menuServices {
     position:absolute;
     left:10px;
     top:70px;
@@ -155,20 +155,19 @@ body {
     width:230px;
     background-color:#777;
 }
-.menuRoutesTitle, .menuFilesTitle, .menuAccountsTitle {
+.menuRoutesTitle, .menuFilesTitle, .menuAccountsTitle, .menuServicesTitle {
     padding:10px;
     padding-left:5px;
     font-size:20px;
     background-color:#006;
     color:white;
 }
-.menuRoutesContents , .menuFilesContents, .menuAccountsContents{
+.menuRoutesContents , .menuFilesContents, .menuAccountsContents, .menuServicesContents{
     overflow:auto;
     width:230px;
 }
 
-
-.containerRoutesEditor, .containerFileManagerEditor, .containerAccountsEditor {
+.containerRoutesEditor, .containerFileManagerEditor, .containerAccountsEditor, .containerServicesEditor {
     position : absolute;
     left : 250px;
     top : 70px;

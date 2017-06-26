@@ -17,6 +17,9 @@ Class.define("ServerMenu",{
                                 "<td id='menuRoutes' class='global-menu-item clickable' align='right'>Routes</td>"+
                             "</tr>"+
                             "<tr>"+
+                                "<td id='menuServices' class='global-menu-item clickable' align='right'>Services</td>"+
+                            "</tr>"+
+                            "<tr>"+
                                 "<td id='menuAccounts' class='global-menu-item clickable' align='right'>Accounts</td>"+
                             "</tr>"+
                             /*
@@ -72,6 +75,10 @@ Class.define("ServerMenu",{
 
             });
             */
+            p.el.menuServices.addEventListener("click",function() {
+                History.go("#manage:system=services");
+                self.hide();
+            })
             p.el.menuNotes.addEventListener("click",function() {
                 History.go("#manage:system=notes");
                 self.hide();

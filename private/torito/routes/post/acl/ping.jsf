@@ -5,18 +5,25 @@
             body.push(data);
             // Too much POST data, kill the connection!
             // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
-            if (body.join("").length > 1e2) req.connection.destroy();
+            if (body.join("").length > 1e3) req.connection.destroy();
         });
         req.on('end', function () {
             var qs = require('querystring');
             var post = qs.parse(body.join(""));
             if(req.session.logged) {
-                res.send(JSON.stringify({result:true}));
-                res.end();
+                var d1 = new Date();
+                var d2 = req.session.date;
+                var diff_miliseconds = d1.valueOf()  - d2.valueOf();
+                if(!("timespan" in req.session)) {
+                    req.session.timespan = 0;
+                }
+                req.session.timespan += diff_miliseconds;
+                //req.session.date = d1;
+
+                res.send(JSON.stringify({result:true, value: diff_miliseconds}));
                 return;
             } else {
                 res.send(JSON.stringify({result:false}));
-                res.end();
                 return;
             }
         });

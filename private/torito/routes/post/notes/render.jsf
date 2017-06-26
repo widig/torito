@@ -21,7 +21,6 @@
 
             if(!(req.session.logged)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 return;
             }
             
@@ -39,12 +38,10 @@
             
             if(!("id" in post)) {
                 res.json({result:false,msg:"A"});
-                res.end();
                 return;
             }
             if(!(post.id in target)) {
                 res.json({result:false,msg:"B"});
-                res.end();
                 return;
             }
 
@@ -67,7 +64,6 @@
             _render(buffer,arr);
             
             res.json({result:true,value:buffer.join("\r\n")});
-            res.end();
             return;
 
 

@@ -13,7 +13,6 @@
             var post = qs.parse(body.join(""));
             if(!(req.session.logged && req.session.level == 0)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 return;
             }
             try {
@@ -54,7 +53,6 @@
                 console.log(e.stack);
             }
             res.send( JSON.stringify(ms) );
-            res.end();
             return;
 
         });

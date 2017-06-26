@@ -19,7 +19,6 @@
                         if(post.password == table.users[ post.target_username ].password ) {
                             if(post.username in table.users) {
                                 res.send( JSON.stringify({result : false})); // username already exists
-                                res.end();
                                 return;
                             }
                             var obj = table.users[ post.oldusername ];
@@ -33,17 +32,14 @@
                             
 
                             res.send( JSON.stringify({result:true}) );
-                            res.end();
                             return;
                             
                         } else {
                             res.send( JSON.stringify({result:false}) ); // password did not match
-                            res.end();    
                             return;
                         }
                     } else {
                         res.send( JSON.stringify({result:false}) ); // user do not exists
-                        res.end();
                         return;
                     }
                 }

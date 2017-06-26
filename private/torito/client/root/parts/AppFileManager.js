@@ -24,6 +24,7 @@ Class.define("AppFileManager",{
 					"<div id='containerFileManagerEditor' class='containerFileManagerEditor'>"+
 						"<div id='title' style='background-color:#008;padding:10px;'></div>"+
 						"<div id='editor'></div>"+
+						"<div id='view' style='background-color:black;'></div>" +
 					"</div>"+
 					"<div id='notesContainer' style='display:flex;flex-direction:column;background-color:#fff;'>"+
 						"<div id='notesTitle' style='padding:10px;background-color:#338;color:white;'>Notes</div>"+
@@ -151,11 +152,13 @@ Class.define("AppFileManager",{
 					var notes_width = parseInt( (window.innerWidth-(menu_width+40))/2 );
 					var titleHeight = 18;
 					var editor = p.el.editor;
-					editor.style.position = "absolute";
-					editor.style.left = "0px";
-					editor.style.top = titleHeight+20 + "px";
-					editor.style.width = (window.innerWidth - (menu_width + 30))  + "px";
-					editor.style.height = (window.innerHeight - 40 - titleHeight-70-50) + "px";
+					var view = p.el.view;
+
+					editor.style.position = view.style.position = "absolute";
+					editor.style.left = view.style.left = "0px";
+					editor.style.top = view.style.top = titleHeight+20 + "px";
+					editor.style.width = view.style.width = (window.innerWidth - (menu_width + 30))  + "px";
+					editor.style.height = view.style.height = (window.innerHeight - 40 - titleHeight-70-50) + "px";
 
 					
 					p.el.notesContainer.style.position = "absolute";
@@ -182,6 +185,33 @@ Class.define("AppFileManager",{
 			};
 			context.files.app = app;
 
+
+			// TO REMOVE
+			UI.Window.on("keydown",function(e) {
+				if(UI.Window.keyboard.ctrl && UI.Window.keyboard.shift && e.keyCode == 80) { // ctrl+shift+P
+					Import({url:"/cs/printscreen",method:"post"})
+					.done(function(data) {
+						data= JSON.parse(data);
+						if(!data.result) {
+							alert("can't");
+						} else {
+							alert("ok");
+						}
+					})
+					.send();
+
+					if(!e) var e = window.event;
+					e.cancelBubble = true;
+					e.returnValue = false;
+					if ( e.stopPropagation ) e.stopPropagation();
+					if ( e.preventDefault ) e.preventDefault();		
+					return false;
+				}
+			});
+
+
+
+
 			UI.Window.on("resize",app.resize);
 			document.body.style.overflow = "hidden";
 			app.resize();
@@ -207,17 +237,133 @@ Class.define("AppFileManager",{
 				app.menu.dispose();
 				var file = app.selected.path;
 				if(confirm("delete directory '"+file+"'?")) {
-					Import({url:"/file/rmdir", method:"post", data : { dir : file } })
-					.done(function(data) {
-						data = JSON.parse(data);
-						if(data.result) {
-							alert("directory:'" + file + "' removed!");
-							refresh_server_files();
-						} else {
-							alert(data.msg);
+					// delete contents first
+					var requests = [];
+					var files_done = []; // to rollback (?) (must implement recycle bin)
+					var deleteFolderThread = setInterval(function() {
+						// dispatcher
+						for(var x = 0; x < requests.length;x++) {
+							if(requests[x].state >0) {
+								//
+								clearInterval( deleteFolderThread );
+								alert("error");
+								// better to stop others from spawning, easier to recover
+								return;
+							}
 						}
-					})
-					.send();
+						var check = 0;
+						for(var x = 0; x < requests.length;x++) {
+							if(requests[x].done < 3) {
+								check++;
+							}
+						}
+						if(check ==0) {
+							clearInterval( deleteFolderThread );
+							alert("DONE from thread!");
+						}
+					},50);
+					// easy
+					function deleteFolder(path,parent,callback) {
+						Import({url:"/file/dir",method:"post",data:{dir:path}})
+						.done(function(data2) {
+							data2 = JSON.parse(data2);
+							if(data2.result) {
+								var request = {};
+								request.checks = 0;
+								request.state = 0;
+								request.path = path;
+								request.jobs = 0;
+								request.done = 0;
+								request.test = function() {
+									var s = this;
+									if(s.jobs == s.checks) {
+										s.done = 2;
+										// remain the folder itself
+										Import({url:"/file/rmdir", method:"post", data : { dir : s.path } })
+										.done(function(data) {
+											data = JSON.parse(data);
+											if(data.result) {
+												files_done.push(s.path);
+												s.callback();
+												s.done = 3;
+											} else {
+												alert(data.msg);
+											}
+										})
+										.fail(function() {
+											s.state = 4;
+										})
+										.send();
+									}
+								}
+								request.callback = function() {
+									callback && callback();
+								}
+								// mini thread of deleting files
+								var dir = data2.value;
+								for(var file in dir) {
+									request.checks++;
+								}
+								if(request.checks ==0) {
+									alert("directory is empty?");
+									request.test();
+								} else {
+									requests.push(request);
+									
+									for(var file in dir) {
+										if( dir[file] == 0 ) { // folder
+											deleteFolder(file,request,function() {
+												files_done.push(path);
+												request.jobs += 1;
+												request.test();
+											},function() {
+												request.state = 3;
+											});
+										} else if( dir[file] == 1) {
+											deleteFile(file,function() {
+												request.jobs += 1;
+												request.test();
+											},function() {
+												request.state = 2;
+											});
+										}
+									}
+								} 
+								
+							} else {
+								request.state = 1;
+							}
+						})
+						.fail(function() {
+							requests.push({
+								done : 1,
+								state : 1000
+							})
+						})
+						.send();
+						
+
+					}
+					function deleteFile(path,done,err) {
+						Import({url:"/file/rm", method:"post", data : { dir : path } })
+						.done(function(data) {
+							data = JSON.parse(data);
+							if(data.result) {
+								files_done.push(path);
+								done && done();
+							} else {
+								err && err();
+							}
+						})
+						.fail(function() {
+							err && err();
+						})
+						.send();
+					}
+					deleteFolder(app.selected.path,null,function() {
+						alert("done from method");
+						refresh_server_files();
+					});
 				}
 			});
 			p.el.contextServerFileDelete.addEventListener("click",function() {
@@ -458,7 +604,8 @@ Class.define("AppFileManager",{
 					});
 				},500);
 				function zipFolder(request) {
-					Import({url:"/file/dir",method:"post",data:{dir:request.file}})
+					console.log(">>" + request.file);
+					Import({url:"/file/dir",method:"post",data:{dir:escape(request.file)}})
 					.done(function(data2) {
 						data2 = JSON.parse(data2);
 						if(data2.result) {
@@ -498,6 +645,7 @@ Class.define("AppFileManager",{
 						}
 					})
 					.fail(function() {
+						alert("error 2 " + request.file);
 						request.state = 1;
 					})
 					.send();
@@ -1065,6 +1213,26 @@ Class.define("AppFileManager",{
 					alert("todo, save a temporary file.");
 				}
 			};
+			function compileFile() {
+				if(app.editor.fileSelected!="") {
+					var ext = app.editor.fileSelected.split(".").pop();
+					if( ext == "cs" ) {
+						Import({method:"post",url:"/compiler/cs", data : { data : Export.Codec.Hex(app.editor.main.getValue()) } })
+						.done(function(data) {
+							data = JSON.parse(data);
+							if(data.result) {
+								alert(data.msg);
+							} else {
+								alert("error");
+								alert(data.msg);
+								
+							}
+						})
+						.send();
+						
+					}
+				}
+			}
 			function refresh_all_files() {
 				refresh_server_files();
 				
@@ -1142,68 +1310,159 @@ Class.define("AppFileManager",{
 				
 			}
 			function loadFileOnEditor(path) {
-				Import({url:"/load",data:{file:escape(path)}})
-				.done(function(data) {
-					
-					
-					p.$.title.elementSetPacket(path);
-					
-					if(app.editor.main) {
-						
-						var ext = path.split(".").pop();
-						var MODES = (function() {
-							var modesIds = monaco.languages.getLanguages().map(function(lang) { return lang.id; });
-							modesIds.sort();
+				var ext = path.split(".").pop();
+				p.$.title.elementSetPacket(path);
+				// make view register of file format
 
-							return modesIds.map(function(modeId) {
-								return {
-									modeId: modeId,
-								};
-							});
-						})();
-						
-						var oldModel = app.editor.main.getModel();
-						app.editor.fileSelected = path;
-						loadNotes(path);
+				if(ext == "mp4") {
+					
+					p.el.editor.style.display = "none";
+					p.el.view.style.backgroundColor = "#000";
+					p.el.view.style.display = "flex";
+					p.el.view.style.justifyContent = "center";
+					p.el.view.style.alignItems = "center";
+					p.el.view.style.overflow = "hidden";
+					var p2 = p.$.view.elementSetPacket(
+						"<div style='position:relative;border:solid 1px #000;margin:5px;width:100%;height:100%;'>"+
+							"<video id='video' style='display:flex;width:100%;height:100%;' controls autoplay preload=\"auto\">"+
+								"<source src='/load?file=" + escape(path) + "' type='video/mp4'/>"+
+							"</video>"+
+						"</div>"
+					);
+					loadNotes(path);
 
-						if(ext == "xml") {
-							var newModel = monaco.editor.createModel(data, "xml");
-							app.editor.main.setModel(newModel);
-						} else if(ext == "html") {
-							var newModel = monaco.editor.createModel(data, "html");
-							app.editor.main.setModel(newModel);
-						} else if(ext == "js") {
-							var newModel = monaco.editor.createModel(data, "javascript");
-							app.editor.main.setModel(newModel);
-						} else if(ext == "json") {
-							var newModel = monaco.editor.createModel(data, "json");
-							app.editor.main.setModel(newModel);
-						} else if(ext == "php") {
-							var newModel = monaco.editor.createModel(data, "php");
-							app.editor.main.setModel(newModel);
-						} else {
-							var newModel = monaco.editor.createModel(data, "plaintext");
-							app.editor.main.setModel(newModel);
+				} else if(ext == "mp3" || ext == "wav") {
+
+					
+					p.el.editor.style.display = "none";
+					p.el.view.style.backgroundColor = "#000";
+					p.el.view.style.display = "flex";
+					p.el.view.style.justifyContent = "center";
+					p.el.view.style.alignItems = "center";
+					p.el.view.style.overflow = "hidden";
+					
+					var p2 = p.$.view.elementSetPacket(
+						"<div style='position:relative;'><audio controls autoplay preload=\"auto\"><source src='/load?file=" + escape(path) + "' type='audio/mpeg'/></audio></div>"
+					);
+					var vw = parseInt( p.el.view.style.width );
+					var vh = parseInt( p.el.view.style.height );
+					loadNotes(path);
+					
+				} else if(ext == "jpg" || ext == "jpeg" || ext == "gif" || ext == "svg" || ext == "png") {
+
+					//p.el.view.style.display = "";
+					p.el.editor.style.display = "none";
+					p.el.view.style.backgroundColor = "#000";
+					p.el.view.style.display = "flex";
+					p.el.view.style.justifyContent = "center";
+					p.el.view.style.alignItems = "center";
+					p.el.view.style.overflow = "hidden";
+					// readme.innerHTML = "<center><img src='" + file + "' height="+parseInt(height)+"/></center>";
+					var p2 = p.$.view.elementSetPacket(
+						"<div style='position:relative;'><img id='image' src='/load?file="+escape(path)+"' style='cursor:move;'/></div>"+
+						"<div id='controls' style='font-size:20px;'>"+
+							"<div>fit to screen</div>"+
+							"<div>"+
+								"<div>zoom</div>"+
+								"<div><input type='range' id='zoomRange' min='10' max='500' value='100'/></div>"+
+							"</div>"+
+						"</div>"
+					);
+					var vw = parseInt( p.el.view.style.width );
+					var vh = parseInt( p.el.view.style.height );
+					p2.el.controls.style.position = "absolute";
+					p2.el.controls.style.left = "0px";
+					p2.el.controls.style.top = (vh - 200) + "px";
+					p2.el.controls.style.width = "200px";
+					p2.el.controls.style.height = "200px";
+					p2.el.controls.style.backgroundColor = "red";
+					var offset = [0,0];
+					var cursorStart = [-1,-1];
+					p2.el.image.addEventListener("load",function() {
+						var sz = [p2.el.image.width,p2.el.image.height];
+						p2.el.zoomRange.addEventListener("change",function() {
+							p2.el.image.setAttribute("width", parseInt( sz[0] * p2.el.zoomRange.value/ 100 ) );
+							p2.el.image.setAttribute("height", parseInt( sz[1] * p2.el.zoomRange.value/ 100 ) );
+						});
+					});
+					p2.el.image.addEventListener("mousedown",function(e) {
+
+					});
+					p2.el.image.addEventListener("mousemove",function(e) {
+
+					});
+					p2.el.image.addEventListener("mouseup",function(e) {
+
+					});
+					loadNotes(path);
+				} else {
+					p.el.editor.style.display = "";
+					p.el.view.style.display = "none";
+					
+					Import({url:"/load",data:{file:escape(path)}})
+					.done(function(data) {
+						
+						if(app.editor.main) {
+							
+							
+							var MODES = (function() {
+								var modesIds = monaco.languages.getLanguages().map(function(lang) { return lang.id; });
+								modesIds.sort();
+
+								return modesIds.map(function(modeId) {
+									return {
+										modeId: modeId,
+									};
+								});
+							})();
+							
+							var oldModel = app.editor.main.getModel();
+							app.editor.fileSelected = path;
+							loadNotes(path);
+
+							if(ext == "xml") {
+								var newModel = monaco.editor.createModel(data, "xml");
+								app.editor.main.setModel(newModel);
+							} else if(ext == "html") {
+								var newModel = monaco.editor.createModel(data, "html");
+								app.editor.main.setModel(newModel);
+							} else if(ext == "js") {
+								var newModel = monaco.editor.createModel(data, "javascript");
+								app.editor.main.setModel(newModel);
+							} else if(ext == "json") {
+								var newModel = monaco.editor.createModel(data, "json");
+								app.editor.main.setModel(newModel);
+							} else if(ext == "php") {
+								var newModel = monaco.editor.createModel(data, "php");
+								app.editor.main.setModel(newModel);
+							} else if(ext == "cs") {
+								var newModel = monaco.editor.createModel(data, "csharp");
+								app.editor.main.setModel(newModel);
+							} else {
+								var newModel = monaco.editor.createModel(data, "plaintext");
+								app.editor.main.setModel(newModel);
+							}
+
+							
+							if (oldModel) {
+								oldModel.dispose();
+							}
+							app.editor.loadPositions();
+							app.editor.main.focus();
+
+							var url = "" + window.location;
+							url = url.split("#");
+							url.shift();
+							url = url.join("#");
+							localStorage.setItem("manage.files.lastFile","#" + url);
+							
+							// set file to load on main menu
+							// add to recently used files
 						}
 						
-						if (oldModel) {
-							oldModel.dispose();
-						}
-						app.editor.loadPositions();
-						app.editor.main.focus();
-
-						var url = "" + window.location;
-						url = url.split("#");
-						url.shift();
-						url = url.join("#");
-						localStorage.setItem("manage.files.lastFile","#" + url);
-						
-						// set file to load on main menu
-						// add to recently used files
-					}
-					
-				})
-				.send();
+					})
+					.send();
+				}
 				
 			}
 			function refresh_server_file(placeholder,path,folder) {
@@ -1351,8 +1610,14 @@ Class.define("AppFileManager",{
 								value: "",
 								language: "javascript"
 							});
+							// app.editor.main.getModel()._options.tabSize = 4;
+							// app.editor.main.getModel().updateOptions({ tabSize: 4 })
+
 							app.editor.main.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, function() {
 								saveFile();
+							});
+							app.editor.main.addCommand(monaco.KeyCode.F5, function() {
+								compileFile();
 							});
 							app.editor.main.onKeyDown(function() {
 								app.editor.savePositions();
@@ -1426,6 +1691,40 @@ Class.define("AppFileManager",{
 							.send();
 							
 						}
+					})
+					.fail(function() {
+						var original = context.files.server;
+						var fpath = context.files.server;
+						var parts = context.files.server.split("/");
+						var filename = parts.pop();
+						context.files.server = parts.join("/");
+						if(context.files.server == "") context.files.server = ".";
+						
+						
+						Import({url:"/file/dir",method:"post",data:{dir:context.files.server}})
+						.done(function(data2) {
+							data2 = JSON.parse(data2);
+							if(data2.result) {
+
+								p.$.pathFileManagerServer.elementSetPacket("Server: " + context.files.server + "/");
+								refresh_server_files_from_server(data2.value);
+								//alert("PRELOAD 2" + "\r\n" + original + "\r\n"  + context.files.server + "\r\n" + JSON.stringify(data));
+								loadEditor(function() {
+									if(fpath!="." && fpath!="") {
+										
+										app.selected = {};
+										var args = { sourceType : "server", folder : false, path : fpath };
+										for(var key in args) { app.selected[key] = args[key]; }
+										loadFileOnEditor(fpath);
+										running = false;
+									}
+								});
+							} else {
+								alert("NOT FOUND.");
+								return;
+							}
+						})
+						.send();
 					})
 					.send();
 				}

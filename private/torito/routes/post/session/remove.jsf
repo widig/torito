@@ -14,16 +14,15 @@
                 if("key" in post) {
                     mod.session.remove(post.key);
                     res.send(JSON.stringify({result:true}));
-                    res.end();
-
+                    return;
                 } else {
                     res.send(JSON.stringify({result:false}));
-                    res.end();    
+                    return;
                 }
                 
             } else {
                 res.send(JSON.stringify({result:false}));
-                res.end();
+                return;
             }
         });
     }

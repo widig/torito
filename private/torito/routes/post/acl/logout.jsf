@@ -13,11 +13,9 @@
             if(req.session.logged) {
                 req.session.logged = false;
                 res.json({result:true});
-                res.end();
                 return;
             } else {
                 res.json({result:false});
-                res.end();
                 return;
             }
         });

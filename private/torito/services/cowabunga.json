@@ -1,0 +1,1 @@
+{"name":"cowabunga","interval":60,"code":"(function() {\r\n\treturn function() {\r\n\t\tconsole.log('cowabunga!');\r\n\t\treturn 0;\r\n\t}\r\n})();","enabled":false}

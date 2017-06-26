@@ -3605,129 +3605,39 @@ function RouterRoute(options) {
 	this.parent = options.parent;
 	return this;
 }
-
-function Router(target) {
-	if(!(this instanceof Router)) {
-		var ret = Object.create(Router.prototype);
-		return Router.apply(ret,arguments);
+Class.define("Router",{ 
+	from : ["WithEvents"],
+	ctor : function(target) {
+		this.target = target;
+		return this;
+	},
+	proto : {
+		page : function(name,load_callback,unload_callback) {
+			var self = this;
+			var p = RouterRoute({
+				name:name,
+				parent:this.target
+			});
+			History.on("load",name,function(state,args){
+				console.log(window.torito.tab,name);
+				self.emit("pageLoad",[state,args])
+				//alert("LOAD");
+				console.log("loading "+name);
+				console.log("state:",JSON.stringify(state));
+				console.log("args:",JSON.stringify(args));
+				load_callback && load_callback.apply(p,[args]);
+			});
+			History.on("unload",name,function(state,args){
+				console.log("unloading "+name);
+				console.log("state:",JSON.stringify(state));
+				console.log("args:",JSON.stringify(args));
+				unload_callback && unload_callback.apply(p,[args]);
+			});
+			return p;
+		}
 	}
-	this.target = target;
-	return this;
-}
-Router.prototype.page = function(name,load_callback,unload_callback) {
-	var p = RouterRoute({
-		name:name,
-		parent:this.target
-	});
-	History.on("load",name,function(state,args){
-		//alert("LOAD");
-		console.log("loading "+name);
-		console.log("state:",JSON.stringify(state));
-		console.log("args:",JSON.stringify(args));
-		load_callback && load_callback.apply(p,[args]);
-	});
-	History.on("unload",name,function(state,args){
-		console.log("unloading "+name);
-		console.log("state:",JSON.stringify(state));
-		console.log("args:",JSON.stringify(args));
-		unload_callback && unload_callback.apply(p,[args]);
-	});
-	return p;
-}
-/*
-//sample
-window.addEventListener("load",function(args) {
-	var r = Router(document.body);
-	r.page("teste",function(args) {
-		console.log(args);
-		if(!this.init) {
-			this.init = this.init || true;
-			this.controls = [];
-			var div = document.createElement("div");
-			div.innerHTML = "TESTE";
-			this.parent.appendChild(div);
-			this.controls.push(div);
-			var link = document.createElement("div");
-			link.innerHTML = "teste2";
-			link.addEventListener("click",function() {
-				History.go("#teste2:b=2");
-			});
-			this.parent.appendChild(link);
-			this.controls.push(link);
-			var link = document.createElement("div");
-			link.innerHTML = "teste1";
-			link.addEventListener("click",function() {
-				History.go("#teste:a=2");
-			});
-			this.parent.appendChild(link);
-			this.controls.push(link);
-			
-			var div = document.createElement("div");
-			div.innerHTML = JSON.stringify(args);
-			this.parent.appendChild(div);
-			this.controls.push(div);
-			this.argholder = div;
-			
-		} else { // component change
-			this.argholder.innerHTML = JSON.stringify(args);
-		}
-	},function() {
-		console.log("UNLOAD TESTE");
-		for(var x = 0; x < this.controls.length;x++) {
-			this.parent.removeChild(this.controls[x]);
-		}
-		while(this.controls.length>0) this.controls.pop();
-		this.init = false;
-	});
-	r.page("teste2",function(args) {
-		console.log(args);
-		if(!this.init) {
-			this.init = this.init || true;
-			this.controls = [];
-			var div = document.createElement("div");
-			div.innerHTML = "TESTE2";
-			this.parent.appendChild(div);
-			this.controls.push(div);
-			var link = document.createElement("div");
-			link.innerHTML = "teste1";
-			link.addEventListener("click",function() {
-				History.go("#teste:a=1");
-			});
-			this.parent.appendChild(link);
-			this.controls.push(link);
-			var link = document.createElement("div");
-			link.innerHTML = "teste2";
-			link.addEventListener("click",function() {
-				History.go("#teste2:b=1");
-			});
-			this.parent.appendChild(link);
-			this.controls.push(link);
-			
-			
-			var div = document.createElement("div");
-			div.innerHTML = JSON.stringify(args);
-			this.parent.appendChild(div);
-			this.controls.push(div);
-			this.argholder = div;
-			
-		} else { // component change
-			this.argholder.innerHTML = JSON.stringify(args);
-		}
-	},function() {
-		console.log("UNLOAD TESTE2");
-		for(var x = 0; x < this.controls.length;x++) {
-			this.parent.removeChild(this.controls[x]);
-		}
-		while(this.controls.length>0) this.controls.pop();
-		this.init = false;
-	});
-	
-	History.init("teste");
-	
-	
 });
-			
-*/
+
 History = Class.create("History");
 
 
@@ -3743,7 +3653,7 @@ UI.init = function(callback) {
 	this.Window.on("load",function() {
 	
 		self.Document = Class.create("UI.Document");
-		self.Window.Router = new Router(document.body);
+		self.Window.Router = Class.create("Router",{ "Router" : [document.body] });
 		//console.log("focus");
 		window.focus();
 		

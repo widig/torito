@@ -18,7 +18,6 @@
 
             if(!(req.session.logged)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 return;
             }
             
@@ -37,17 +36,14 @@
             
             if(!("id" in post)) {
                 res.json({result : false, msg:"A"});
-                res.end();
                 return;
             }
             if(!( post.id in target)) {
                 res.json({result:false, msg : "C"});
-                res.end();
                 return;
             }
             
             res.json({result:true, value : target[post.id].version});
-            res.end();
             return;
 
         });

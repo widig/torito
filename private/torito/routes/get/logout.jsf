@@ -2,7 +2,6 @@
     return function (req, res) {
         req.session.logged = false;
 	    res.send( mod.fs.readFileSync( mod.torito.paths.clientPublic + "/login.html","utf8") );
-	    res.end();
         return;
     }
 })();

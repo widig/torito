@@ -1,0 +1,1 @@
+{"name":"hello2","interval":60,"code":"(function() {\r\n\treturn function() {\r\n\t\tconsole.log('hello service3!');\r\n\t\treturn 0;\r\n\t}\r\n})();","enabled":false}

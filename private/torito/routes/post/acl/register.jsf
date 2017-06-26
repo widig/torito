@@ -15,13 +15,11 @@
             if(req.session.logged && req.session.level == 0) {
                 if(!("username" in post)) {
                     res.json({result:false});
-                    res.end();
                     return;
                 }
                 // username checking
                 if(post.username.indexOf("/")!=-1) {
                     res.json({result:false,message:"invalid name"});
-                    res.end();
                     return;
                 }
                 if("username" in post && "password" in post && "level" in post) {
@@ -30,7 +28,6 @@
                     table = JSON.parse(table);
                     if(post.username in table.users) {
                         res.json({result:false});
-                        res.end();
                         return;
                     }
                     table.users[ post.username ] = {
@@ -45,7 +42,6 @@
                     // create route of user, that route, routes to user router
 
                     res.json({result:true});
-                    res.end();
                     return;
 
 
@@ -53,7 +49,6 @@
                 
             } else {
                 res.json({result:false,logged:req.session.logged,level:req.session.level});
-                res.end();
                 return;
             }
         });

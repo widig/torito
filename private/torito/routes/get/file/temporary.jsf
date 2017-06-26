@@ -3,13 +3,11 @@
 
         if(!(req.session.logged) || (req.session.level != 0)) {
             res.status(404).send("");
-            res.end();
             return;
         }
 
         if(!("id" in req.query)) {
             res.status(404).send("");
-            res.end();
             return;
         }
 
@@ -27,12 +25,10 @@
 
         if(req.query.id in target) {
             res.send(target[req.query.id].value);
-            res.end();
             delete target[req.query.id];
             return;
         } else {
             res.status(404).send("");
-            res.end();
             return;
         }
     };

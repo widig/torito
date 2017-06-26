@@ -14,7 +14,6 @@ Class.define("AppAccounts",{
                         "<div id='menuAccountsContents' class='menuAccountsContents'>"+
                             "<div id='dir' style='font-size:14px;'></div>"+
                         "</div>"+
-                        
                     "</div>"+
                     "<div id='containerAccountsEditor' class='containerAccountsEditor'>"+
                         "<div id='title' style='background-color:#008;'>Accounts</div>"+
@@ -55,7 +54,7 @@ Class.define("AppAccounts",{
                 resize : function() {
                     p.el.containerAccountsEditor.style.width = (window.innerWidth - 260) + "px";
                     p.el.containerAccountsEditor.style.height = (window.innerHeight - 20-70-50) + "px";
-                    
+
                     titleHeight = 0;
                     var editor = p.el.editor;
                     editor.style.position = "absolute";
@@ -63,6 +62,7 @@ Class.define("AppAccounts",{
                     editor.style.top = titleHeight+20 + "px";
                     editor.style.width = (window.innerWidth - 260)  + "px";
                     editor.style.height = (window.innerHeight - 40 - titleHeight-70-50) + "px";
+                    editor.style.overflow = "auto";
                 }
             };
             UI.Window.on("resize",app.resize);
@@ -83,7 +83,6 @@ Class.define("AppAccounts",{
                 // set view to new user form
                 console.log(p.$.containerAccountsEditor)
                 
-
                 var pNewUser = p.$.editor.elementSetPacket(
                     "<br/><br/>"+
                     "<div id='lblError' style='display:none;'></div>"+
@@ -178,7 +177,7 @@ Class.define("AppAccounts",{
                                             "<tr>"+
                                                 "<td style='border-left:solid 1px #000;border-bottom:solid 1px #000;'>"+
                                                     "<b>date</b>:"+sessions[key].date+"<br/>"+
-                                                    "<b>username</b> : " + sessions[key].level + "/" + sessions[key].username + " "+
+                                                    "<b>username</b> : " + sessions[key].level + "/" + sessions[key].username + "/" + sessions[key].ip + " "+
                                                     "<b>logged</b>:" + sessions[key].logged +
                                                 "</td>"+
                                                 "<td align='center' valign='middle' style='border-bottom:solid 1px #000;border-right:solid 1px #000;'>"+
@@ -225,8 +224,29 @@ Class.define("AppAccounts",{
                 app.menu.dispose();
             });
             p.el.contextUserLog.addEventListener("click",function() {
+                
                 alert("user log");
                 app.menu.dispose();
+                // open log file for that user
+                var p2 = p.$.editor.elementSetPacket(
+                   "<table width='100%'><WithDOMElements id='rows'/></table>"
+                );
+                Import({url:"/acl/statistics",method:"post"})
+                .done(function(data) {
+                    var table = data.value;
+                    var p3 = p2.$.elementPushPacket("<tr><WithDOMElements id='cols'/></td>")
+                    for(var key in table) {
+                        // construct columns
+                        // HERE
+                        p3.$.cols.elementPushPacket("<td>" + key + "</td>");
+                    }
+                    for(var x = 0; x < table.rows.length;x++) {
+                        
+                    }
+                })
+                .send();
+
+
             });
             p.el.contextUserSettings.addEventListener("click",function() {
 

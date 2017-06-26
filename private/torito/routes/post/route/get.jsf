@@ -13,7 +13,6 @@
             var post = qs.parse(body.join(""));
             if(!(req.session.logged && req.session.level == 0)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 return;
             }
             // method in post
@@ -62,11 +61,9 @@
                 }
                 if(found) {
                     res.json({result:true, value: ret });
-                    res.end();
                     return;
                 } else {
                     res.json({result:false});
-                    res.end();
                     return;
                 }
             }

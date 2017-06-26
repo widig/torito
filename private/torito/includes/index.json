@@ -7,5 +7,6 @@
 	"cookie" : "./private/torito/lib/cookie",
 	"session" : "./private/torito/lib/session",
 	"sha1" : "./private/torito/lib/SHA1",
-	"webfile" : "./private/torito/lib/webfile"
+	"webfile" : "./private/torito/lib/webfile",
+	"services" : "./private/torito/lib/services"
 }

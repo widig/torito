@@ -25,7 +25,7 @@ webfile.import(__dirname + "/parts/AppAccounts.js","js");
 webfile.import(__dirname + "/parts/AppFileManager.js","js");
 webfile.import(__dirname + "/parts/AppLogout.js","js");
 webfile.import(__dirname + "/parts/AppRouter.js","js");
-webfile.import(__dirname + "/parts/AppTerminal.js","js");
+webfile.import(__dirname + "/parts/AppServices.js","js");
 webfile.import(__dirname + "/parts/AppNotes.js","js");
 webfile.import(__dirname + "/parts/Mask.js","js");
 webfile.import(__dirname + "/parts/ServerContainer.js","js");

@@ -18,7 +18,6 @@
             var post = qs.parse(body.join(""));
             if(!(req.session.logged && req.session.level == 0)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 return;
             }
             if("path" in post && "code" in post) {
@@ -110,13 +109,11 @@
                     
 
                     res.send(JSON.stringify({result:true}));
-                    res.end();
                     return;
                 } catch(e) {
                     console.log(e);
                     console.log(e.stack);
                     res.send(JSON.stringify({result:false,msg:""+e+e.stack}));
-                    res.end();
                     return;
                 }
             }

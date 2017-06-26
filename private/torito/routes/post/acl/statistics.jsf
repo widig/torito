@@ -1,0 +1,48 @@
+(function() {
+    return function (req,res) {
+
+        var body = [];
+        req.on('data', function (data) {
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.join("").length > 1e4) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var qs = require('querystring');
+            var post = qs.parse(body.join(""));
+
+            if(!(req.session.logged && req.session.level == 0)) {
+                res.send(JSON.stringify({result:false,msg:"not logged."}));
+                res.end();
+                return;
+            }
+            if(true) {
+                //var field = post.name;
+
+                //
+                // accounts
+                //
+                // user : data
+                //      session.username,
+                //      session.level
+                //      
+                
+                // log vem antes de estatisticas
+
+                // que tipo de estatisticas podem ser contadas em accounts?
+
+                // tempo de uso na semana
+                // como é calculado?
+                // quando o usuario está logado cria-se um timer na session
+                // o timer conta o total de segundos desde que foi iniciado
+                // o relogio do timer é pausado sempre que o usuario deixa a aba inativa por alguma maneira.
+                // o relogio do timer é retorna ao estado rodando sempre que o usuario deixa alguma aba ativada
+                // o ping 1 1 confirma torna o id 1 true 
+                
+                res.json({result:true, value : { } })
+            }
+            res.json({result:false});
+        });
+    };
+})();

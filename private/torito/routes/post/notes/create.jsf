@@ -18,7 +18,6 @@
 
             if(!(req.session.logged)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 return;
             }
             
@@ -36,7 +35,6 @@
             for(var key in target) {
                 if( target[key].reference == post.reference ) {
                     res.json({result:true, id: target[key].id });
-                    res.end();
                     return;
                 }
             }
@@ -55,7 +53,6 @@
                         // set save
                         if(obj.reference.charAt(0)!=".") {
                             res.json({result : false});
-                            res.end();
                             return;
                         }
                         var _ref = obj.reference.substring(1);
@@ -79,7 +76,6 @@
                                         mod.fs.rmdirSync(folders[z]);
                                     }
                                     res.json({result:false});
-                                    res.end();
                                     return;
                                     // fail (critical to notes)
                                 }
@@ -123,20 +119,17 @@
 
                                 if(obj.id in target) {
                                     res.json({result:false});
-                                    res.end();
                                     return;
                                 } else {
                                     console.log("OK");
                                     target[obj.id] = obj;
                                     res.json({result:true, id: obj.id});
-                                    res.end();
                                     return;
                                 }
                             }
                         }
                     } else {
                         res.json({result:false});
-                        res.end();
                         return;
                     }
                 }
@@ -154,12 +147,10 @@
                 target[id] = obj;
                 
                 res.json({result:true, id: id});
-                res.end();
                 return;
 
             } else {
                 res.json({result : false});
-                res.end();
                 return;
             }
         });

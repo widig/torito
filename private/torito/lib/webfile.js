@@ -216,16 +216,13 @@ function _load(res,path,acl) {
         console.log(e);
         console.log(e.stack);
         res.status(500).send("Error");
-        res.end();
         return;
     }
     mount(wf,acl,function(data) {
         console.log("DATA SENT");
         res.send(data);
-        res.end();
     },function() {
         res.status(500).send("Error");
-        res.end();
         return;
     });
 }

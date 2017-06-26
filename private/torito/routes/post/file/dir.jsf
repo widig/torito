@@ -15,7 +15,6 @@
             
             if(!(req.session.logged && req.session.level == 0)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 console.log("not logged");
                 return;
             }
@@ -23,7 +22,6 @@
             if(!("dir" in post)) {
                 res.send(JSON.stringify({result:false,msg:"no directory."}));
                 console.log("no directory")
-                res.end();
                 return;
             }
             // check if userA is not getting access to userB, except if userB allows
@@ -40,6 +38,7 @@
                 if(dir.indexOf("./")==0 || dir == ".") {
                     for(var x = 1; x < parts.length;x++) {
                         // check if there is ".link" file
+                        console.log(">>",parts[x]);
                         
                         var link_file = current_path + "/" + parts[x] + ".link";
                         if( mod.fs.existsSync( link_file ) ) {
@@ -50,64 +49,79 @@
                             if("path" in json) {
                                 current_path = json.path;
                             } else {
-                                throw "not handled2";
+                                res.json({result : false});
+                                return;
                             }
                         } else {
                             current_path += "/" + parts[x];
                         }
                         if(x == parts.length-1) {
-                            if( mod.fs.lstatSync(current_path).isDirectory() ) {
-
-                                var arr = mod.fs.readdirSync(unescape(current_path));
-                                var vp = parts.join("/") + "/";
-                                for(var file in arr) {
-                                    try {
-                                        if( mod.fs.lstatSync(unescape(current_path) + "/" + arr[file]).isDirectory() ) {
-                                        
-                                            ret[vp + arr[file]] = 0;
-                                        } else {
-                                            ret[vp + arr[file]] = 1;
+                            console.log(">>?");
+                            current_path = unescape(unescape(current_path));
+                            if( mod.fs.existsSync(current_path) ) {
+                                console.log(">>?1",current_path);
+                                if( mod.fs.lstatSync(current_path).isDirectory() ) {
+                                    console.log(">>?3");
+                                    var arr = mod.fs.readdirSync(unescape(current_path));
+                                    var vp = parts.join("/") + "/";
+                                    for(var file in arr) {
+                                        try {
+                                            if( mod.fs.lstatSync(unescape(current_path) + "/" + arr[file]).isDirectory() ) {
+                                            
+                                                ret[vp + arr[file]] = 0;
+                                            } else {
+                                                ret[vp + arr[file]] = 1;
+                                            }
+                                        } catch(e) {
+                                            res.json({ result : false });
+                                            return;
                                         }
-                                    } catch(e) {
                                     }
+                                } else {
+                                    console.log(">>?4");
+                                    res.json({ result : false, msg :"4" });
+                                    return;
                                 }
                             } else {
+                                console.log(">>?2",current_path);
                                 res.json({result : false});
-                                res.end();
                                 return;
                             }
                         }
                     }
                     if(parts.length == 1) { // enforce .
-                        arr = mod.fs.readdirSync(".");
-                        for(var file in arr) {
-                            try {
-                                if( mod.fs.lstatSync(arr[file]).isDirectory() ) {
-                                    ret["./" +arr[file]] = 0;
-                                } else {
-                                    ret["./" +arr[file]] = 1;
+                        if( mod.fs.lstatSync(".").isDirectory() ) {
+                            arr = mod.fs.readdirSync(".");
+                            for(var file in arr) {
+                                try {
+                                    if( mod.fs.lstatSync(arr[file]).isDirectory() ) {
+                                        ret["./" +arr[file]] = 0;
+                                    } else {
+                                        ret["./" +arr[file]] = 1;
+                                    }
+                                } catch(e) {
+                                    res.json({result : false});
+                                    return;
                                 }
-                            } catch(e) {
                             }
+                        } else {
+                            res.json({result : false});
+                            return;
                         }
                     }
                     res.send(JSON.stringify({
                         result : true,
                         value : ret
                     }));
-                    res.end();
                     return;
                 } else {
-                    
                     res.send(JSON.stringify({result : false, message: " path " + dir + " do not starts with ./ " }));
-                    res.end();
                     return;
                 }
             } catch(e) {
                 console.log(e);
                 console.log(e.stack);
                 res.send(JSON.stringify({result : false}));
-                res.end();
                 return;
             }
         });

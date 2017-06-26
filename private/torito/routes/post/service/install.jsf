@@ -1,0 +1,62 @@
+(function(){
+	return function(req,res){ 
+	    var body = [];
+        req.on('data', function (data) {
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            // 2 100
+            // 3 1k
+            // 4 10k
+            // 5 100k
+            // BURST OF AJAX WITH EMPTY
+            
+            if (body.join("").length > 1e5) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var qs = require('querystring');
+            var post = qs.parse(body.join(""));
+
+            if(!(req.session.logged && req.session.level == 0)) {
+                res.json({result:false,msg:"not logged."});
+                return;
+            }
+            
+            if(!("code" in post) || !("name" in post) || !("interval" in post)) {
+                res.json({result:false,msg:"bad arguments."});
+                return;
+            }
+
+            if(post.name.indexOf("..") != -1 || post.name.indexOf("/") != -1) {
+                res.json({result:false,msg:"bad name."});
+                return;
+            }
+
+            try {
+                post.interval = parseInt(post.interval);
+            } catch(e) {
+                res.json({result:false, msg:"bad interval."});
+                return;
+            }
+
+            try {
+                post.code = mod.codecs.hex2str(post.code);
+            } catch(e) {
+                res.json({result:false, msg:"code in incorrect format."});
+                return;
+            }
+            
+            mod.fs.writeFileSync("./private/torito/services/" + post.name + ".json",JSON.stringify({
+                name : post.name,
+                interval : post.interval,
+                code : post.code,
+                enabled : true
+            }),"utf8");
+
+            mod.services.install(post.name,parseInt(post.interval),true,post.code);
+            res.send(JSON.stringify({result:true}));
+            return;
+
+        });
+    };
+})();

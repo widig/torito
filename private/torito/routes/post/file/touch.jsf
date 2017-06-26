@@ -13,7 +13,6 @@
             var post = qs.parse(body.join(""));
             if(!(req.session.logged && req.session.level == 0)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 return;
             }
             if("dir" in post) {
@@ -38,29 +37,24 @@
                         try {
                             if( mod.fs.lstatSync(filename2).isDirectory() ) {
                                 res.send(JSON.stringify({result:false,msg:"already exists.(1)"}));
-                                res.end();
                                 return;
                             } else if( mod.fs.lstatSync(filename2).isFile() ) {
                                 res.send(JSON.stringify({result:false,msg:"already exists.(2)"}));
-                                res.end();
                                 return;
                                 //res.send(JSON.stringify({result:false,msg:"already exists.(2)"}));
                             } else {
                                 res.send(JSON.stringify({result:false,msg:"already exists.(3)"}));
-                                res.end();
                                 return;
                             }
                         } catch(e) {
                             mod.fs.writeFileSync(filename2,"","utf8");
                             res.send(JSON.stringify({result:true}));
-                            res.end();
                             return;
                         }
                     }
                 }
             } else {
                 res.send(JSON.stringify({result:false}));
-                res.end();
                 return;
             }
             

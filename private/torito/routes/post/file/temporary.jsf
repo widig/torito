@@ -24,13 +24,11 @@
             }
             if(!(req.session.logged) || (req.session.level != 0)) {
                 res.json({result:false,msg:"not logged."});
-                res.end();
                 return;
             }
 
             if(!("data" in post)) {
                 res.json({result:false,msg:"not logged."});
-                res.end();
                 return;
             }
 
@@ -57,7 +55,6 @@
             }
             
             res.json({result:true,value:id});
-            res.end();
             return;
 
         });

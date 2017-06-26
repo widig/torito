@@ -18,7 +18,6 @@
 
             if(!(req.session.logged)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
-                res.end();
                 return;
             }
             
@@ -43,7 +42,6 @@
             }
             res.json({result : true, value : ret });
             //res.json({result:false});
-            res.end();
             return;
         });
     };
