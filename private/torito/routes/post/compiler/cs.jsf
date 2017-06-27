@@ -16,6 +16,13 @@
                 res.end();
                 return;
             }
+
+            if(!("data" in post)) {
+                res.json({result:false});
+            }
+            if(!("type" in post)) {
+                res.json({result:false});
+            }
             var tmp_folder = __dirname + "/private/torito/tmp";
             var _path = require("path");
             tmp_folder = _path.normalize( tmp_folder );
@@ -26,8 +33,9 @@
             var doc = mod.codecs.hex2str( post.data );
             console.log(doc);
             mod.fs.writeFileSync(tmp_folder + "/test.cs",doc,"utf8");
+
             var cargs = [
-                "/t:exe",
+                "/t:" + post.type,
                 "/nologo"
             ]
             if(doc.indexOf("System.Drawing")!=-1) {
@@ -36,10 +44,14 @@
             if(doc.indexOf("System.Windows.Forms")!=-1) {
                 cargs.push("/r:System.Windows.Forms.dll");
             }
-            if(doc.indexOf("System.IO")!=-1) {
+            if(doc.indexOf("System.IO")!=-1 || doc.indexOf("System.Threading")!=-1) {
                 cargs.push("/r:mscorlib.dll");
             }
+            if(doc.indexOf("System.Diagnostics")!=-1) {
+                cargs.push("/r:System.dll");
+            }
             
+
             cargs.push("/out:" + tmp_folder + "/test.exe");
             cargs.push(tmp_folder + "\\test.cs");
 

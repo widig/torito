@@ -1,0 +1,99 @@
+(function() {
+    return function (req,res) {
+        var body = [];
+        req.on('data', function (data) {
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.join("").length > 1e5) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var qs = require('querystring');
+            var post = qs.parse(body.join(""));
+
+            if(!(req.session.logged && req.session.level == 0)) {
+                res.send(JSON.stringify({result:false,msg:"not logged."}));
+                res.end();
+                return;
+            }
+            
+            if(!("data" in post)) {
+                res.json({result:false,msg:"no data."});
+                return;
+            }
+            var app_name = "test";
+            var java_path = 'C:\\Program Files\\Java\\jdk1.8.0_131\\bin\\';
+            var tmp_folder = __dirname + "/private/torito/tmp";
+            var _path = require("path");
+            tmp_folder = _path.normalize( tmp_folder );
+            if(!mod.fs.existsSync(tmp_folder)) {
+                mod.fs.mkdirSync(tmp_folder);
+            }
+            var spawn = require('child_process').spawn;
+            var doc = mod.codecs.hex2str( post.data );
+            var i = doc.indexOf( "public class " );
+            var j = doc.indexOf("{",i + 1);
+            var _name = doc.substring(i+13,j).split(" ").join("");
+            console.log(">>"+_name+"<<");
+            app_name = _name;
+            console.log(doc);
+            mod.fs.writeFileSync(tmp_folder + "/"+app_name+".java",doc,"utf8");
+
+
+            var cargs = [
+                tmp_folder + "\\"+app_name+".java",
+            ]
+            console.log(JSON.stringify(cargs));
+            var cs_compiler = java_path + "javac.exe";
+            var child = spawn(cs_compiler, cargs);
+            var data = [];
+            child.stderr.on("data", function (chunk) {
+                data.push(chunk.toString("ascii"));
+            });
+            child.stdout.on('data', function(chunk) {
+                data.push(chunk.toString("ascii"));
+            });
+            child.on('exit', (code) => {
+                console.log(">>>",data.join(""));
+                if(code == 0) {
+                    var cargs = [
+                        "-cp",
+                        tmp_folder,
+                        app_name
+                    ];
+                    console.log(JSON.stringify(cargs));
+                    var child2 = spawn(java_path + 'java.exe', cargs);
+                    var data2 = [];
+                    child2.stderr.on("data", function (data) {
+                        //console.log("error:",data.toString("ascii"));
+                        data2.push(data.toString("ascii"));
+                    });
+                    child2.stdout.on('data', function(chunk) {
+                        //console.log("ok:",chunk.toString("ascii"));
+                        data2.push(chunk.toString("ascii"));
+                    });
+                    child2.on('exit', (code) => {
+                        if(code !=0) {
+                            console.log("error??",code,data2.join(""));
+                            res.json({result:false,code:code,msg:data2.join("")});
+                        } else {
+                            console.log("!!");
+                            mod.fs.unlinkSync(tmp_folder + "/"+app_name+".class");
+                            mod.fs.unlinkSync(tmp_folder + "/"+app_name+".java");
+                            res.json({result:true,msg:data2.join("")});
+                            return;
+                        }
+                        
+                    });
+                } else {
+                    console.log("??",code);
+                    res.json({result:false,code:code,msg:data.join("")});
+                    return;
+                }
+            });
+
+        });
+        //C:\Program Files\Java\jdk1.8.0_131\bin
+    };
+})();
+

@@ -1217,7 +1217,8 @@ Class.define("AppFileManager",{
 				if(app.editor.fileSelected!="") {
 					var ext = app.editor.fileSelected.split(".").pop();
 					if( ext == "cs" ) {
-						Import({method:"post",url:"/compiler/cs", data : { data : Export.Codec.Hex(app.editor.main.getValue()) } })
+						var _type = prompt("type (exe|winexe)","exe");
+						Import({method:"post",url:"/compiler/cs", data : { data : Export.Codec.Hex(app.editor.main.getValue()), type : _type } })
 						.done(function(data) {
 							data = JSON.parse(data);
 							if(data.result) {
@@ -1225,11 +1226,46 @@ Class.define("AppFileManager",{
 							} else {
 								alert("error");
 								alert(data.msg);
-								
 							}
 						})
 						.send();
-						
+					} else if(ext == "java") {
+						Import({method:"post",url:"/compiler/java", data : { data : Export.Codec.Hex(app.editor.main.getValue()) } })
+						.done(function(data) {
+							data = JSON.parse(data);
+							if(data.result) {
+								alert(data.msg);
+							} else {
+								alert("error");
+								alert(data.msg);
+							}
+						})
+						.send();
+
+					} else if(ext == "c") {
+						Import({method:"post",url:"/compiler/c", data : { data : Export.Codec.Hex(app.editor.main.getValue()) } })
+						.done(function(data) {
+							data = JSON.parse(data);
+							if(data.result) {
+								alert(data.msg);
+							} else {
+								alert("error");
+								alert(data.msg);
+							}
+						})
+						.send();
+					} else if(ext == "cpp") {
+						Import({method:"post",url:"/compiler/cpp", data : { data : Export.Codec.Hex(app.editor.main.getValue()) } })
+						.done(function(data) {
+							data = JSON.parse(data);
+							if(data.result) {
+								alert(data.msg);
+							} else {
+								alert("error");
+								alert(data.msg);
+							}
+						})
+						.send();
 					}
 				}
 			}
@@ -1437,6 +1473,15 @@ Class.define("AppFileManager",{
 								app.editor.main.setModel(newModel);
 							} else if(ext == "cs") {
 								var newModel = monaco.editor.createModel(data, "csharp");
+								app.editor.main.setModel(newModel);
+							} else if(ext == "c") {
+								var newModel = monaco.editor.createModel(data, "c");
+								app.editor.main.setModel(newModel);
+							} else if(ext == "cpp") {
+								var newModel = monaco.editor.createModel(data, "cpp");
+								app.editor.main.setModel(newModel);
+							} else if(ext == "java") {
+								var newModel = monaco.editor.createModel(data, "java");
 								app.editor.main.setModel(newModel);
 							} else {
 								var newModel = monaco.editor.createModel(data, "plaintext");
