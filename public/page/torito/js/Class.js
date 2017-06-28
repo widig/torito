@@ -3619,7 +3619,7 @@ Class.define("Router",{
 				parent:this.target
 			});
 			History.on("load",name,function(state,args){
-				console.log(window.torito.tab,name);
+				
 				self.emit("pageLoad",[state,args])
 				//alert("LOAD");
 				console.log("loading "+name);

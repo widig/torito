@@ -3,6 +3,10 @@ if(!this.init) {
 	var app = {};
 	this.app = app;
 	UI.Body.elementsClear();
-	var p = app.schema = UI.Body.elementPushPacket('<div>default</div>');
+	var p = app.schema = UI.Body.elementPushPacket(
+		"<div>default</div>"
+	);
+	//<input type=\"file\" accept=\"video/*;capture=camcorder\">
 } else {
+	
 }

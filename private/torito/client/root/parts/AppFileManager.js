@@ -1213,59 +1213,37 @@ Class.define("AppFileManager",{
 					alert("todo, save a temporary file.");
 				}
 			};
-			function compileFile() {
+			function compileFile() { // createServerRoute on this code
 				if(app.editor.fileSelected!="") {
 					var ext = app.editor.fileSelected.split(".").pop();
+					// uniform model is not possible due to compiler flags of each code
+					// a json model to input is desireable
+					function _result(data) {
+						data = JSON.parse(data);
+						if(data.result) {
+							alert(data.msg);
+							// a json model to output is desireable
+						} else {
+							alert("error");
+							alert(data.msg);
+						}
+					}
+					var _code = Export.Codec.Hex(app.editor.main.getValue());
 					if( ext == "cs" ) {
 						var _type = prompt("type (exe|winexe)","exe");
-						Import({method:"post",url:"/compiler/cs", data : { data : Export.Codec.Hex(app.editor.main.getValue()), type : _type } })
-						.done(function(data) {
-							data = JSON.parse(data);
-							if(data.result) {
-								alert(data.msg);
-							} else {
-								alert("error");
-								alert(data.msg);
-							}
-						})
-						.send();
+						Import({method:"post",url:"/compiler/cs", data : { data : _code, type : _type } }).done(_result).send();
 					} else if(ext == "java") {
-						Import({method:"post",url:"/compiler/java", data : { data : Export.Codec.Hex(app.editor.main.getValue()) } })
-						.done(function(data) {
-							data = JSON.parse(data);
-							if(data.result) {
-								alert(data.msg);
-							} else {
-								alert("error");
-								alert(data.msg);
-							}
-						})
-						.send();
-
+						Import({method:"post",url:"/compiler/java", data : { data : _code } }).done(_result).send();
 					} else if(ext == "c") {
-						Import({method:"post",url:"/compiler/c", data : { data : Export.Codec.Hex(app.editor.main.getValue()) } })
-						.done(function(data) {
-							data = JSON.parse(data);
-							if(data.result) {
-								alert(data.msg);
-							} else {
-								alert("error");
-								alert(data.msg);
-							}
-						})
-						.send();
+						Import({method:"post",url:"/compiler/c", data : { data : _code } }).done(_result).send();
 					} else if(ext == "cpp") {
-						Import({method:"post",url:"/compiler/cpp", data : { data : Export.Codec.Hex(app.editor.main.getValue()) } })
-						.done(function(data) {
-							data = JSON.parse(data);
-							if(data.result) {
-								alert(data.msg);
-							} else {
-								alert("error");
-								alert(data.msg);
-							}
-						})
-						.send();
+						Import({method:"post",url:"/compiler/cpp", data : { data : _code } }).done(_result).send();
+					} else if(ext == "js") {
+						Import({method:"post",url:"/compiler/node", data : { data : _code } }).done(_result).send();
+					} else if(ext == "py") {
+						Import({method:"post",url:"/compiler/py", data : { data : _code } }).done(_result).send();
+					} else if(ext == "go") {
+						Import({method:"post",url:"/compiler/go", data : { data : _code } }).done(_result).send();
 					}
 				}
 			}
@@ -1456,42 +1434,18 @@ Class.define("AppFileManager",{
 							app.editor.fileSelected = path;
 							loadNotes(path);
 
-							if(ext == "xml") {
-								var newModel = monaco.editor.createModel(data, "xml");
-								app.editor.main.setModel(newModel);
-							} else if(ext == "html") {
-								var newModel = monaco.editor.createModel(data, "html");
-								app.editor.main.setModel(newModel);
-							} else if(ext == "js") {
-								var newModel = monaco.editor.createModel(data, "javascript");
-								app.editor.main.setModel(newModel);
-							} else if(ext == "json") {
-								var newModel = monaco.editor.createModel(data, "json");
-								app.editor.main.setModel(newModel);
-							} else if(ext == "php") {
-								var newModel = monaco.editor.createModel(data, "php");
-								app.editor.main.setModel(newModel);
-							} else if(ext == "cs") {
-								var newModel = monaco.editor.createModel(data, "csharp");
-								app.editor.main.setModel(newModel);
-							} else if(ext == "c") {
-								var newModel = monaco.editor.createModel(data, "c");
-								app.editor.main.setModel(newModel);
-							} else if(ext == "cpp") {
-								var newModel = monaco.editor.createModel(data, "cpp");
-								app.editor.main.setModel(newModel);
-							} else if(ext == "java") {
-								var newModel = monaco.editor.createModel(data, "java");
-								app.editor.main.setModel(newModel);
-							} else {
-								var newModel = monaco.editor.createModel(data, "plaintext");
-								app.editor.main.setModel(newModel);
-							}
+							var arr = [
+								["js","cs","py","xml","html","json","php","c","cpp","java","go"],
+								["javascript","csharp","python"]
+							]
+							var p = arr[0].indexOf(ext);
+							var _type = "plaintext"
+							if(p != -1) _type = p < arr[1].length ? arr[1][p] : arr[0][p];
+							var newModel = monaco.editor.createModel(data, _type);
+							app.editor.main.setModel(newModel);
 
 							
-							if (oldModel) {
-								oldModel.dispose();
-							}
+							if (oldModel) oldModel.dispose();
 							app.editor.loadPositions();
 							app.editor.main.focus();
 
@@ -1500,7 +1454,7 @@ Class.define("AppFileManager",{
 							url.shift();
 							url = url.join("#");
 							localStorage.setItem("manage.files.lastFile","#" + url);
-							
+
 							// set file to load on main menu
 							// add to recently used files
 						}

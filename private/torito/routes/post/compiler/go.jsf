@@ -1,0 +1,65 @@
+(function() {
+    return function (req,res) {
+        var body = [];
+        req.on('data', function (data) {
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.join("").length > 1e5) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var qs = require('querystring');
+            var post = qs.parse(body.join(""));
+
+            if(!(req.session.logged && req.session.level == 0)) {
+                res.send(JSON.stringify({result:false,msg:"not logged."}));
+                res.end();
+                return;
+            }
+            if(!("data" in post)) {
+                res.json({result:false,msg:"no data."});
+                return;
+            }
+            var app_name = "test";
+            var go_path = 'C:\\Go\\bin\\';
+            var tmp_folder = __dirname + "/private/torito/tmp";
+            var _path = require("path");
+            tmp_folder = _path.normalize( tmp_folder );
+            if(!mod.fs.existsSync(tmp_folder)) {
+                mod.fs.mkdirSync(tmp_folder);
+            }
+            var spawn = require('child_process').spawn;
+            var doc = mod.codecs.hex2str( post.data );
+            console.log(doc);
+            mod.fs.writeFileSync(tmp_folder + "/"+app_name+".go",doc,"utf8");
+            var cargs = [
+                "run",
+                tmp_folder+"\\"+app_name+".go"
+            ]
+            // C:\Users\alien\Projects\new2\private\user\root\c>"C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\amd64\cl.exe" /Fo.\samples\test\Hello.obj /Fe.\samples\test\Hello.exe .\samples\Hello.c
+            console.log(JSON.stringify(cargs));
+            var go_compiler = go_path + "go.exe";
+            var child = spawn(go_compiler, cargs);
+            var data = [];
+            child.stderr.on("data", function (chunk) {
+                data.push(chunk.toString("ascii"));
+            });
+            child.stdout.on('data', function(chunk) {
+                data.push(chunk.toString("ascii"));
+            });
+            child.on('exit', (code) => {
+                if(code !=0) {
+                    res.json({result:false,code:code,msg:data.join("")});
+                } else {
+                    console.log("!!");
+                    mod.fs.unlinkSync(tmp_folder + "/"+app_name+".go");
+                    //mod.fs.unlinkSync(tmp_folder + "/"+app_name+".obj");
+                    res.json({result:true,msg:data.join("")});
+                    return;
+                }
+            });
+        });
+        //C:\Program Files\Java\jdk1.8.0_131\bin
+    };
+})();
+

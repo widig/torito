@@ -1,0 +1,1 @@
+print("{ \"result\" : true, msg : \"Hello World!\" }")
