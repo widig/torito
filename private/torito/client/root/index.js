@@ -10,6 +10,8 @@ webfile.import("/public/page/torito/js/Class.js","js");
 webfile.import("/public/page/torito/js/Download.js","js");
 
 webfile.import("/public/control/jszip/dist/jszip.min.js");
+webfile.import("/public/control/esprima/esprima.js");
+webfile.import("/public/control/escodegen/escodegen.js");
 
 
 webfile.import("/public/control/monaco/dev/vs/editor/editor.main.css","css");
@@ -21,23 +23,20 @@ webfile.script("var require={ paths : { vs : '/public/control/monaco/dev/vs'} };
 webfile.import("/public/control/monaco/dev/vs/loader.js","js");
 
 
-webfile.import(__dirname + "/parts/AppAccounts.js","js");
-webfile.import(__dirname + "/parts/AppFileManager.js","js");
-webfile.import(__dirname + "/parts/AppLogout.js","js");
-webfile.import(__dirname + "/parts/AppRouter.js","js");
-webfile.import(__dirname + "/parts/AppServices.js","js");
-webfile.import(__dirname + "/parts/AppNotes.js","js");
-webfile.import(__dirname + "/parts/Mask.js","js");
-webfile.import(__dirname + "/parts/ServerContainer.js","js");
-webfile.import(__dirname + "/parts/ServerMenu.js","js");
-webfile.import(__dirname + "/parts/UserContainer.js","js");
-webfile.import(__dirname + "/parts/UserMenu.js","js");
-
-
+webfile.import(__dirname + "/manage/AppAccounts.js","js");
+webfile.import(__dirname + "/manage/AppFileManager.js","js");
+webfile.import(__dirname + "/manage/AppLogout.js","js");
+webfile.import(__dirname + "/manage/AppRouter.js","js");
+webfile.import(__dirname + "/manage/AppServices.js","js");
+webfile.import(__dirname + "/manage/AppNotes.js","js");
+webfile.import(__dirname + "/manage/Mask.js","js");
+webfile.import(__dirname + "/manage/ServerContainer.js","js");
+webfile.import(__dirname + "/manage/ServerMenu.js","js");
 webfile.page("manage",__dirname);
+
+webfile.page("draw",__dirname);
+
+webfile.page("stream",__dirname);
 
 
 webfile.start(__dirname + "/main.js");
-
-
-

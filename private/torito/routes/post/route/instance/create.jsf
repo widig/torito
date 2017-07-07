@@ -1,0 +1,108 @@
+(function(){
+    
+	return function(req,res){ 
+	    var body = [];
+        req.on('data', function (data) {
+            if(!(req.session.logged)) {
+                res.send(JSON.stringify({result:false,msg:"not logged."}));
+                req.connection.destroy();
+                return;
+            }
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.join("").length > 1e4) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var qs = require('querystring');
+            var post = qs.parse(body.join(""));
+
+
+            if(!(req.session.logged && req.session.level == 0)) {
+                res.send(JSON.stringify({result:false,msg:"not logged."}));
+                return;
+            }
+
+            if(!("path" in post) || !("method" in post) || !("input" in post) || !("output" in post)) {
+                res.json({result:false,msg:"missing params."});
+                return;
+            }
+            try {
+                post.input = mod.codecs.hex2str(post.input);
+                post.output = mod.codecs.hex2str(post.output);
+                post.input = JSON.parse(post.input);
+                post.output = JSON.parse(post.output);
+
+            } catch(e) {
+                res.json({result:false,msg:"hex conversion error."});
+                return;
+            }
+
+
+            var path = "./private/torito/routesMeta";
+            if(!(mod.fs.existsSync(path))) {
+                mod.fs.mkdirSync(path);
+            }
+            path += "/instances";
+            if(!(mod.fs.existsSync(path))) {
+                mod.fs.mkdirSync(path);
+            }
+            // check if method is ok
+            if( post.method != "post" && post.method != "get") {
+                res.json({result:false,msg:"incorrect method."});
+                return;
+            }
+            // check if path is ok
+            if(post.path.indexOf("..")!=-1) {
+                res.json({result:false, msg:"incorrect path (1)."});
+                return;
+            }
+
+            if(!(mod.fs.existsSync("./private/torito/routes/" + post.method + post.path + ".jsf"))) {
+                res.json({result:false, msg:"incorrect path (2)." + "./private/torito/routes/" + post.method + post.path });
+                return;
+            }
+
+            path += "/" + post.method + post.path;
+            var parts = path.split("/");
+            var cur = parts[0];
+            if(cur != ".") {
+                res.json({result:false, msg: "incorrect path (3)."});
+                return;
+            }
+            for(var x = 1; x < parts.length-1;x++) {
+                cur += "/" + parts[x];
+                if(!mod.fs.existsSync(cur)) {
+                    mod.fs.mkdirSync(cur);
+                }
+            }
+            var np = parts.join("/") + ".requests.json";
+
+            var data = {
+                method : post.method,
+                path : post.path,
+                requests : []
+            };
+            if(mod.fs.existsSync(np)) {
+                try { 
+                    data = JSON.parse( mod.fs.readFileSync(np,"utf8") );
+                } catch(e) {
+                    res.json({result:false, msg : "error on read requests."});
+                    return;
+                }
+            }
+            data.requests.push({
+                removed : false,
+                should : true,
+                username : req.session.username,
+                input : post.input,
+                output : post.output
+            });
+
+            mod.fs.writeFileSync(np,JSON.stringify(data),"utf8");
+            res.json({result:true});
+            
+            return;
+        });
+    };
+})();

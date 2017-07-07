@@ -25,7 +25,7 @@ var routesDirectory = { get : mod.torito.paths.server.routes.get, post : mod.tor
 
 app = mod.express();
 mod.app = app;
-app.set("port",process.env.PORT || 3001);
+app.set("port",process.env.PORT || 3002);
 
 
 

@@ -60,5 +60,14 @@ module.exports = {
 	},
 	hex2json : function(data) {
 		return JSON.parse(this.hex2str(data));
+	},
+	httpbody : function(data) {
+		var qs = require('querystring');
+		try {
+			var json = JSON.parse(data);
+			return json;
+		} catch(e) {
+			return qs.parse(data);
+		}
 	}
 }

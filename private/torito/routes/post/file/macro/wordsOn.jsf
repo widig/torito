@@ -1,0 +1,57 @@
+(function() {
+    return function (req,res) {
+        var arr;
+        var body = [];
+        req.on('data', function (data) {
+            body.push(data);
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.join("").length > 1e2) req.connection.destroy();
+        });
+        req.on('end', function () {
+            var post = mod.codecs.httpbody( body.join("") );
+            
+            if(!(req.session.logged && req.session.level == 0)) {
+                res.send(JSON.stringify({result:false,msg:"not logged."}));
+                return;
+            }
+
+            if(!("file" in post)) {
+                res.json({result:false});
+                return;
+            }
+
+            if( !mod.fs.existsSync(post.file) ) {
+                res.json({result:false});
+                return;
+            }
+
+            if( !mod.fs.existsSync("./private/torito/macros") ) {
+                res.json({result:false});
+                return;
+            }
+
+            if( !mod.fs.existsSync("./private/torito/macros/index.json") ) {
+                res.json({result:false});
+                return;
+            }
+
+            var macros = JSON.parse( mod.fs.readFileSync("./private/torito/macros/index.json","utf8") );
+            var file = mod.fs.readFileSync(post.file,"utf8");
+            
+            var tags = [];
+            for(var x = 0; x < macros.instances.length;x++) {
+                //args)
+                var tag = "{" + JSON.stringify(macros.instances[x]) + "}";
+                if( file.indexOf(tag)!=-1 ) {
+                    tags.push( macros.instances[x] );
+                }
+            }
+            res.json({result:true,value : tags });
+            
+            return;
+
+            
+        });
+    }
+})();

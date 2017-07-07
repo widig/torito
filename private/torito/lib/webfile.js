@@ -114,13 +114,17 @@ function mount(webfile,acl,callback,error_callback) {
             var obj = webfile.objects[x];
             if(obj.type == "page") {
                 pages.push("UI.Window.Router.page('" + obj.name + "',function(args) {")
-                // warning
-                src = fs.readFileSync(obj.file + "/" + obj.name + "/load.js","utf8");
-                pages.push( src );
+                if( fs.existsSync(obj.file + "/" + obj.name + "/load.js") ) {
+                    // warning
+                    src = fs.readFileSync(obj.file + "/" + obj.name + "/load.js","utf8");
+                    pages.push( src );
+                }
                 src = "";
                 pages.push("},function() {");
-                src = fs.readFileSync(obj.file + "/" + obj.name + "/unload.js","utf8");
-                pages.push( src );
+                if( fs.existsSync(obj.file + "/" + obj.name + "/unload.js")) {
+                    src = fs.readFileSync(obj.file + "/" + obj.name + "/unload.js","utf8");
+                    pages.push( src );
+                }
                 src = "";
                 pages.push("});");
 

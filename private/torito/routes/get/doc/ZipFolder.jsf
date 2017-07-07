@@ -1,0 +1,16 @@
+(function(){
+	return function(req,res){ 
+        res.send( 
+            "<html>"+
+                "<body style='margin:0px;'>"+
+                    "<div style='padding:10px;'>" +
+                        "<div style='font-size:30px;'>Using Zip Folder</div>" +
+                        "<br/>"+
+                        "<div>On File Manager</div>" +
+                        "<div>Right Click on left menu titled Server.</div>" +
+                    "</div>" +
+                "</body>" +
+            "</html>"
+        );
+    };
+})();

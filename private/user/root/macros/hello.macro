@@ -1,0 +1,4 @@
+int main() {
+    printf("{{"name":"test","id":"f951f5bd-2443-fb5d-a579-de1557f3bfe8"}}\r\n");
+    return 0;
+}

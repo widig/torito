@@ -34,6 +34,7 @@
             console.log(doc);
             mod.fs.writeFileSync(tmp_folder + "/"+app_name+".c",doc,"utf8");
             var cargs = [
+                "/nologo",
                 "/Fo"+tmp_folder+"\\"+app_name+".obj",
                 "/Fe"+tmp_folder+"\\"+app_name+".exe",
                 "/IC:\\Program Files (x86)\\Microsoft Visual Studio 10.0\\VC\\include\\",
@@ -54,27 +55,25 @@
                 data.push(chunk.toString("ascii"));
             });
             child.on('exit', (code) => {
-                console.log(">>>",data.join(""));
-                if(code == 0) {
+                console.log(">>>",code,data.join(""));
+                var str = data.join("");
+                
+                if(code == 0 && str == app_name+".c\r\n") {
                     var child2 = spawn(tmp_folder + '/'+app_name, []);
                     var data2 = [];
-                    child2.stderr.on("data", function (data) {
-                        //console.log("error:",data.toString("ascii"));
-                        data2.push(data.toString("ascii"));
+                    child2.stderr.on("data", function (chunk) {
+                        data2.push(chunk.toString("ascii"));
                     });
                     child2.stdout.on('data', function(chunk) {
-                        //console.log("ok:",chunk.toString("ascii"));
                         data2.push(chunk.toString("ascii"));
                     });
                     child2.on('exit', (code) => {
                         if(code !=0) {
-                            console.log("error??",code,data2.join(""));
                             res.json({result:false,code:code,msg:data2.join("")});
                         } else {
-                            console.log("!!");
                             mod.fs.unlinkSync(tmp_folder + "/"+app_name+".exe");
-                            //mod.fs.unlinkSync(tmp_folder + "/"+app_name+".obj");
-
+                            mod.fs.unlinkSync(tmp_folder + "/"+app_name+".c");
+                            mod.fs.unlinkSync(tmp_folder + "/"+app_name+".obj");
                             res.json({result:true,msg:data2.join("")});
                             return;
                         }

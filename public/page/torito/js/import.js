@@ -1,26 +1,53 @@
 /*
 	Import
 */
-
 function ImportInstanceHeader() {
 	this.url = "";
-	this.method = "get";
+	this.method = "GET";
 	this.data = {};
+	this.query = {};
 	this.json = false;
-	this.headers = [];
+	this.type = "application/x-www-form-urlencoded";
+	this.headers = {};
 };
-ImportInstanceHeader.prototype.formatArguments = function() {
+ImportInstanceHeader.prototype.formatQuery = function() {
 	var arr = [], str;
-	for(var name in this.data) {
-		arr.push(name + '=' + encodeURIComponent(this.data[name]));
+	for(var name in this.query) {
+		arr.push(name + '=' + encodeURIComponent(this.query[name]));
 	}
 	str = arr.join('&');
 	if(str != '') {
-		return this.method == "get" ? 
-			(this.url.indexOf('?') < 0 ? '?' + str : '&' + str) : 
-			str;
+		if( this.url.indexOf('?') < 0 ) {
+			return "?" + str;
+		} else {
+			return "&" + str;
+		}
+	} else {
+		return "";
 	}
-	return '';
+}
+ImportInstanceHeader.prototype.formatBody = function() {
+	if(this.type == "application/x-www-form-urlencoded") {
+		var arr = [], str;
+		for(var name in this.data) {
+			arr.push(name + '=' + encodeURIComponent(this.data[name]));
+		}
+		str = arr.join('&');
+		if(str != '') {
+			return this.method == "GET" ? 
+				(this.url.indexOf('?') < 0 ? '?' + str : '&' + str) : 
+				str;
+		}
+		return '';
+	} else if(this.type == "application/json") {
+		return JSON.stringify(this.data);
+	} else {
+		if(Object.prototype.toString.apply(data) == "[object String]") {
+			return this.data;
+		} else {
+			throw "body on import is raw but not string.";
+		}
+	}
 }
 function Import(opt) {
 	if(!( this instanceof Import )) return new Import(opt);
@@ -34,11 +61,22 @@ function Import(opt) {
 	}
 	if(Object.prototype.toString.apply(opt)=="[object Object]") {
 		if("url" in opt) this.info.url = opt.url;
-		if("method" in opt) this.info.method = opt.method;
-		if("data" in opt) this.info.data = opt.data;
+		if("method" in opt) this.info.method = opt.method.toUpperCase();
+		if("query" in opt) this.info.query = opt.query;
+		if("data" in opt) {
+			this.info.data = opt.data;
+			if("body" in opt) this.info.data = opt.body;
+		} else {
+			if("body" in opt) this.info.data = opt.body;
+		}
 		if("json" in opt) this.info.json = opt.json;
+		if("type" in opt) this.info.type = opt.type;
 	}
 }
+Import.Form = "application/x-www-form-urlencoded";
+Import.Json = "application/json";
+Import.Js = "application/javascript";
+Import.Raw = "text/plain";
 Import.prototype.done = function(callback) { this.doneCallback = callback; return this; };
 Import.prototype.fail = function(callback) { this.failCallback = callback; return this; };
 Import.prototype.always = function(callback) { this.alwaysCallback = callback; return this; };
@@ -55,6 +93,7 @@ Import.prototype.send = function() {
 		this.xhr = new XMLHttpRequest();
 	}
 	if(!this.xhr) throw "xhr can't initiate.";
+
 	this.xhr.onreadystatechange = function() {
 		if(self.xhr.readyState == 4 && self.xhr.status == 200) {
 			var result = self.xhr.responseText;
@@ -70,34 +109,58 @@ Import.prototype.send = function() {
 		self.alwaysCallback && self.alwaysCallback.apply(self.host, [self.info]);
 	}
 	this._send = function() {
-		if(this.info.method == 'get') {
-			this.xhr.open("GET", this.info.url + this.info.formatArguments(), true);
-		} else if(this.info.method=="post"){
-			this.xhr.open("POST", this.info.url, true);
-			this.setHeaders({
-				'X-Requested-With': 'XMLHttpRequest',
-				'Content-type': 'application/x-www-form-urlencoded'
-			});
-		} else {
-			this.xhr.open("GET", this.info.url + this.info.formatArguments(), true);
-		}
+		var debug = false;
+		if(debug) console.log("IMPORT",this.info.method,this.info.url + this.info.formatQuery(),this.info.type);
+		this.xhr.open(this.info.method, this.info.url + this.info.formatQuery(), true);
+		this.setHeaders({
+			'X-Requested-With': 'XMLHttpRequest'
+		});
 		if(this.info.headers && typeof this.info.headers == 'object') {
 			for(var name in this.info.headers) this.xhr && this.xhr.setRequestHeader(name, this.info.headers[name]);
 		}
-		if(this.info.method=="post") {
-			var str = this.info.formatArguments();
-			self.xhr.send(this.info.formatArguments());
+		var data = this.info.formatBody();
+		if(debug) console.log("BODY",data);
+		if(data !="") {
+			this.setHeaders({
+				'Content-type' : this.info.type
+			});
+			self.xhr.send(data);
 		} else {
-			self.xhr.send();
+			self.xhr.send();	
 		}
 	}
 	this._send(); 
 	return this;
 };
-
-function Export() {
-
+Import.Codec = {};
+Import.Codec.Hex = function(str) {
+	var dict = {
+		"0" : 0, "1" : 1, "2" : 2, "3" : 3, "4" : 4, "5" : 5, "6" : 6, "7" : 7, "8" : 8, "9" : 9, "A" : 10, "a" : 10, "B" : 11, "b" : 11, "C" : 12, "c" : 12, "D" : 13, "d" : 13, "E" : 14, "e" : 14, "F" : 15, "f" : 15 
+	};
+	var sb = [];
+	for(var x = 0; x < data.length;x+=2) {
+		var a = data.charAt(x);
+		var b = data.charAt(x+1);
+		if(a in dict) {
+			a = dict[a];
+		} else {
+			throw "not hex";
+		}
+		if(b in dict) {
+			b = dict[b];
+		} else {
+			throw "not hex";
+		}
+		var c = (a << 4) + b;
+		sb.push( String.fromCharCode(c) );
+		
+	}
+	return sb.join("");
 }
+Import.Codec.Base64 = function(str) {
+	return window.atob(str);
+}
+function Export() {}
 Export.Codec = {};
 Export.Codec.Hex = function(str) {
 	var dict = { 0 : "0", 1 : "1", 2 : "2", 3 : "3", 4 : "4", 5 : "5", 6 : "6", 7 : "7", 8: "8", 9 : "9", 10 : "A", 11 : "B", 12 : "C" , 13 : "D", 14 : "E", 15 : "F" };
@@ -107,4 +170,7 @@ Export.Codec.Hex = function(str) {
 		sb.push( dict[ (0xF0 & code) >> 4 ] + dict[ 0xF & code ]  );
 	}
 	return sb.join("");
+}
+Export.Codec.Base64 = function(str) {
+	return window.btoa(str);
 }

@@ -28,7 +28,6 @@
                     res.json({result:false,code:3});
                     return;
                 }
-
                 if(!(post.id in req.session.tab)) {
                     res.json({result:false,code:4});
                     return;

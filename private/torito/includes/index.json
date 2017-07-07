@@ -3,6 +3,7 @@
 	"fs" : "fs",
 	"vm" : "vm",
 	"util" : "util",
+	"mongodb" : "mongodb",
 	"codecs" : "./private/torito/lib/codecs",
 	"cookie" : "./private/torito/lib/cookie",
 	"session" : "./private/torito/lib/session",

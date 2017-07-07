@@ -56,8 +56,10 @@
                         }
                     }
                 } else {
-                    var msg = post.file + " is unkown!";
-                    throw msg;
+                    //var msg = post.file + " is unkown!";
+                    //throw msg;
+                    res.json({result:false});
+                    return;
                 }
                 if(check) {
 
@@ -70,7 +72,8 @@
                             if("path" in json) {
                                 current_path = json.path;
                             } else {
-                                throw "not handled2";
+                                res.json({result:false});
+                                return;
                             }
                         } else {
                             current_path += "/" + parts[x];
@@ -82,13 +85,13 @@
                             if(mod.fs.lstatSync(filename2).isFile()) {
                                 mod.fs.writeFileSync(filename2,data,"binary");
                             }
-                            res.send(JSON.stringify({result:true, file:filename2}));
+                            res.json({result:true, file:filename2});
                             return;
                         }
                     }
 
                 } else {
-                    res.send(JSON.stringify({result:false,msg:msg}));
+                    res.json({result:false,msg:msg});
                     return;
                 }
                

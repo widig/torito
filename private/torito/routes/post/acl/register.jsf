@@ -30,12 +30,13 @@
                         res.json({result:false});
                         return;
                     }
+                    
                     table.users[ post.username ] = {
                         password : post.password,
                         level : parseInt(post.level)
                     };
                     mod.fs.writeFileSync(acl_table_file,JSON.stringify(table),"utf8");
-
+                    
                     // create user folder
                     mod.fs.mkdirSync("./private/user/" + post.username);
                     

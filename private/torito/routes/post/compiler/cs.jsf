@@ -38,23 +38,45 @@
                 "/t:" + post.type,
                 "/nologo"
             ]
+            if(doc.indexOf("System.Numerics")!=-1) {
+                cargs.push("/r:System.Numerics.dll");
+            }
             if(doc.indexOf("System.Drawing")!=-1) {
                 cargs.push("/r:System.Drawing.dll");
             }
             if(doc.indexOf("System.Windows.Forms")!=-1) {
                 cargs.push("/r:System.Windows.Forms.dll");
             }
-            if(doc.indexOf("System.IO")!=-1 || doc.indexOf("System.Threading")!=-1) {
-                cargs.push("/r:mscorlib.dll");
+            if(doc.indexOf("System.Configuration.Install")!=-1) {
+                cargs.push("/r:System.Configuration.Install.dll");
             }
-            if(doc.indexOf("System.Diagnostics")!=-1) {
-                cargs.push("/r:System.dll");
+            if(doc.indexOf("System.ServiceProcess")!=-1) {
+                cargs.push("/r:System.ServiceProcess.dll");
             }
             
+            if(
+                doc.indexOf("System.IO")!=-1 || 
+                doc.indexOf("System.Threading")!=-1 || 
+                doc.indexOf("System.Text")!=-1 || 
+                doc.indexOf("System.Collections")!=-1 ||
+                doc.indexOf("System.Reflection")!=-1 ||
+                doc.indexOf("Microsoft.Win32")!=-1 ||
+                doc.indexOf("System.Runtime.InteropServices") !=-1
+            ) {
+                cargs.push("/r:mscorlib.dll");
+            }
+            if(
+                doc.indexOf("System.Diagnostics")!=-1 ||
+                doc.indexOf("Microsoft.Win32")!=-1 ||
+                doc.indexOf("System.ComponentModel")!=-1
+            ) {
+                cargs.push("/r:System.dll");
+            }
+
 
             cargs.push("/out:" + tmp_folder + "/test.exe");
             cargs.push(tmp_folder + "\\test.cs");
-
+            
 
             console.log(JSON.stringify(cargs));
             var cs_compiler = 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
@@ -72,7 +94,7 @@
                         data2.push(chunk);
                     });
                     child2.on('exit', (code) => {
-                        mod.fs.unlinkSync(tmp_folder + "/test.exe");
+                        //mod.fs.unlinkSync(tmp_folder + "/test.exe");
                         mod.fs.unlinkSync(tmp_folder + "/test.cs");
                         res.json({result:true,msg:data2.join("")});
                         return;

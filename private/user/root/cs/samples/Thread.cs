@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 public class Example
 {
+    
     public static void Main()
     {
         var th = new Thread(ExecuteInForeground);
@@ -10,6 +11,7 @@ public class Example
         Thread.Sleep(1000);
         Console.WriteLine("Main thread ({0}) exiting...", Thread.CurrentThread.ManagedThreadId); 
     }
+
     private static void ExecuteInForeground()
     {
         DateTime start = DateTime.Now;
