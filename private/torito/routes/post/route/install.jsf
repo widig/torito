@@ -25,7 +25,9 @@
                     var data = mod.codecs.hex2str( post.code );
                     var method = "get";
                     if("method" in post && post.method == "post") method = "post";
+                    if("method" in post && post.method == "websocket") method = "websocket";
                     if("method" in post && post.method == "static") method = "static";
+                    
                     // disable params
                     /*
                     var _parts = post.path.split("/");

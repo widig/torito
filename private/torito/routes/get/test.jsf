@@ -1,193 +1,30 @@
 (function(){
 	return function(req,res){
-        // https://docs.mongodb.com/manual/reference/command/
-
+        
         /*
-            [
-                client
-                db
-            ]
-            .admin() ->
+        todo?
 
-            s,command,buildInfo,serverInfo,serverStatus,profilingLevel,ping,authenticate,logout
-            addUser,removeUser,setProfilingLevel,profilingInfo,validateCollection,listDatabases,replSetGetStatus
+        arduino+ethernet -> max232 -> equipamentos
+        raspberrypi+c -> max232 -> equipamentos
+        celular -> raspberry pi (docker of android)
+
+
+        equipamentos: 
+        -> projeto relays.
+            luminária automatizada
+            lampada
+            portao
+            ar condicionado
+            tv -> protocolo de comunicação com tv.
+        -> projeto content:
+            tv -> protocolo de comunicação com tv.
+            phone -> emoticon and sound. -> smyle, beer, cute, kiss, fake credit card
+            phone -> location -> VR AR
+            
         */
 
-        var _client = null;
-        function ErrorHandler(client,err) {
-            if( err.name == "MongoError" ) {
-                res.send(err.message);
-                client.close();
-                return;
-            }
-            res.send(err);
-            client.close();
-            //{"name":"MongoError","message":"failed to connect to server [localhost:27017] on first connect [MongoError: connect ECONNREFUSED 127.0.0.1:27017]"}
-            return;
-        }
-        function DefaultHandler(err,data) {
-            if(err!=null) return ErrorHandler(_client,err);
-            res.send(JSON.stringify(data));
-            _client.close();
-        }
-        function list_databases(client) {
-            var doc = [];
-            doc.push("Connected correctly to server");
-            client.admin().listDatabases(function(err,dbs) {
-                if(err!=null) return ErrorHandler(client,err);
-                var f = function(t) {
-                    return Object.prototype.toString.apply(t) 
-                }
-                for(var x = 0; x < dbs.databases.length;x++) {
-                    var db = dbs.databases[x];
-                    doc.push( JSON.stringify( db) );
-                    //"name","sizeOnDisk","empty"
-                }
-                res.send(doc.join("<br/>"));
-                client.close();
-            })
-            //doc.push( client.db.getUsers() );
-        }
-        function list_users(client) {
-            client.admin().command({ 
-                usersInfo: 1
-            },DefaultHandler);
-        }
-        function get_user(client,name) {
-            client.admin().command({ 
-                usersInfo: {
-                    user : name,
-                    db : "admin"
-                },
-                showPrivileges : true
-            },DefaultHandler);
-        }
-        function create_root_user(client,name,password,profile) {
-            profile = profile || {};
-            client.admin().command({
-                createUser : name, 
-                pwd : password,
-                customData : profile,
-                roles : [ "root" ]
-            },DefaultHandler);
-        }
-        function create_user(client,name,password,profile) {
-            profile = profile || {};
-            client.admin().command({
-                createUser : name, 
-                pwd : password,
-                customData : profile,
-                roles : [ ]
-            },DefaultHandler);
-        }
-        function drop_user(client,name) {
-            client.admin().command({
-                dropUser : name
-            },DefaultHandler);
-        }
-        function auth(client,user,pass,callback) {
-            client.admin().authenticate("root","pass1",function(err,data) {
-                if(err!=null) return ErrorHandler(client,err);
-                callback && callback();
-            });
-        }
-        function list_collections(client) {
-            client.listCollections().toArray(function(err, collections){
-                if(err!=null) return ErrorHandler(client,err);
-                res.send( JSON.stringify(collections) );
-                client.close();
-            });
-        }
-        function create_collection(client,name) {
-
-            client.createCollection(name, { "capped": true, "size": 100000, "max": 5000},
-                function(err, results) {
-                    if(err!=null) return ErrorHandler(client,err);
-                    res.send({result:true});
-                    client.close();
-                }
-            );
-        }
-        function drop_collection(client,name) {
-            client.dropCollection(name, function(err, result) {
-                if(err!=null) return ErrorHandler(client,err);
-                res.send({result:true});
-                client.close();
-            });
-        }
-        function insertItem(client,collection,item) {
-            client.collection(collection).insertOne(
-                item, 
-                function(err, result) {
-                    if(err!=null) return ErrorHandler(client,err);
-                    res.send({result:true,msg:JSON.stringify(result)});
-                    client.close();
-                }
-            );
-        }
-        function findItem(client,collection,filter) {
-            // Find some documents
-            client.collection(collection).find(filter).toArray(function(err, docs) {
-                if(err!=null) return ErrorHandler(client,err);
-                res.send({result:true,msg:JSON.stringify(docs)});
-                client.close();
-            });
-        }
-        function removeItems(client,collection,filter) {
-            // Find some documents
-            client.collection(collection).deleteMany(filter,null,function( err, docs) {
-                if(err!=null) return ErrorHandler(client,err);
-                res.send({result:true,msg:JSON.stringify(docs)});
-                client.close();
-            });
-        }
-        function updateItems(client,collection,filter,update) {
-            client.collection(collection).updateOne(filter, update,null,function(err,docs) {
-                if(err!=null) return ErrorHandler(client,err);
-                res.send({result:true,msg:JSON.stringify(docs)});
-                client.close();
-            });
-        }
-        var MongoClient = mod.mongodb.MongoClient;
-        //root:pass1@
-        var url = 'mongodb://localhost:27017/admin';
-        MongoClient.connect(url, function(err, client) {
-            _client = client;
-            if(err!=null) return ErrorHandler(client,err);
-            /*
-            client ->
-            _events,_eventsCount,_maxListeners,s,serverConfig,bufferMaxEntries,databaseName,topology,options
-            slaveOk,writeConcern,open,command,close,admin,collection,createCollection,stats,listCollections,eval,renameCollection
-            dropCollection,dropDatabase,collections,executeDbAdminCommand,createIndex,ensureIndex,addChild,db,addUser,removeUser
-            authenticate,logout,indexInformation,unref,setMaxListeners,getMaxListeners,emit,addListener,on,prependListener,once
-            prependOnceListener,removeListener,removeAllListeners,listeners,listenerCount,eventNames
-            */
-            //console.log("OK1");
-            if(true) {
-                
-                //create_root_user(client,"root","pass");
-                //create_user(client,"user1","pass",{ address : [1,2,3] });
-                //list_users(client);
-                //get_user(client,"user1");
-                //drop_user(client,"user1");
-                //auth(client,"root","pass1",function() { list_collections(client); });
-                //auth(client,"root","pass1",function() { create_collection(client,"table1"); });
-                //auth(client,"root","pass1",function() { drop_collection(client,"table1"); });
-                //auth(client,"root","pass1",function() { insertItem(client,"table1",{ name : "John1", age : 10}) });
-                //auth(client,"root","pass1",function() { insertItem(client,"table1",{ name : "John2", age : 20} ); });
-                //auth(client,"root","pass1",function() { insertItem(client,"table1",{ name : "John2"}); });
-                auth(client,"root","pass1",function() { findItem(client,"table1",{}); });
-                //auth(client,"root","pass1",function() { findItem(client,"table1",{ name : "John1" }); });
-                //auth(client,"root","pass1",function() { findItem(client,"table1",{ age : { $gt : 15 } }); });
-                //auth(client,"root","pass1",function() { removeItems(client,"table1",{ name : "John2"}); });
-                //auth(client,"root","pass1",function() { updateItems(client,"table1",{ name : "John3"},{$set:{ name : "John2"}}); });
-
-            } else {
-                res.json({result:false});
-                client.close();
-            }
-            
-        });
-
+        res.send("/test");
+        return;
+        
     };
 })();

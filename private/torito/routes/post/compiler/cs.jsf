@@ -81,23 +81,38 @@
             console.log(JSON.stringify(cargs));
             var cs_compiler = 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
             var child = spawn(cs_compiler, cargs);
-            
             var data = [];
             child.stdout.on('data', function(chunk) {
                 data.push(chunk);
             });
             child.on('exit', (code) => {
                 if(code == 0) {
+                    var state = 0;
+                    var timeout = setTimeout(function() {
+                        if(state != 1) {
+                            console.log("WAITING");
+                            state = 2;
+                            // generate id to look for archived results
+                            res.json({result:true,wait:true});
+                        }
+                    },1000);
                     var child2 = spawn(tmp_folder + '/test', []);
                     var data2 = [];
                     child2.stdout.on('data', function(chunk) {
                         data2.push(chunk);
                     });
                     child2.on('exit', (code) => {
-                        //mod.fs.unlinkSync(tmp_folder + "/test.exe");
                         mod.fs.unlinkSync(tmp_folder + "/test.cs");
-                        res.json({result:true,msg:data2.join("")});
-                        return;
+                        if(state == 2) {
+                            console.log("WRITING RESULT");
+                            // already sent response, so archive result with id
+                            mod.fs.writeFileSync(tmp_folder + "/test.txt", data2.join(""), "utf8");
+                            return;
+                        } else {
+                            state = 1;
+                            res.json({result:true,msg:data2.join("")});
+                            return;
+                        }
                     });
                 } else {
                     res.json({result:false,code:code,msg:data.join("")});

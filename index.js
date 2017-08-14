@@ -20,10 +20,13 @@ if("services" in mod) { // DANGER DANGER DANGER
 	
 }
 
-var routesDirectory = { get : mod.torito.paths.server.routes.get, post : mod.torito.paths.server.routes.post, static : mod.torito.paths.server.routes.static };
+var routesDirectory = { get : mod.torito.paths.server.routes.get, post : mod.torito.paths.server.routes.post, websocket: mod.torito.paths.server.routes.websocket, static : mod.torito.paths.server.routes.static };
 
 
-app = mod.express();
+app = mod.express_ws_routes();
+
+
+
 mod.app = app;
 app.set("port",process.env.PORT || 3002);
 
@@ -131,9 +134,10 @@ if("session" in mod) {
 
 
 var builtin = {
-	get : {},
-	post : {},
-	static : {}
+	"get" : {},
+	"post" : {},
+	"websocket" : {},
+	"static" : {}
 };
 
 function readdirrecSync(dir,top) {
@@ -157,7 +161,7 @@ for(var dir in routesDirectory) {
 	console.log("DIR:",routesDirectory[dir]);
 	arrv = readdirrecSync(routesDirectory[dir]);
 	for(var file in arrv) {
-		if(dir == "get" || dir == "post") {
+		if(dir == "get" || dir == "post" || dir == "websocket") {
 			console.log("@:",arrv[file]);
 			if( arrv[file].lastIndexOf(".jsf") == arrv[file].length-4 ) {
 				var name = arrv[file].substring(0,arrv[file].length-4);
@@ -186,7 +190,7 @@ for(var dir in routesDirectory) {
 			}
 		}
 	}
-	if(dir == "get" || dir == "post") {
+	if(dir == "get" || dir == "post" || dir == "websocket") {
 		for(var r in builtin[dir]) {
 			console.log(dir + ":" + r);
 			app[dir](r,builtin[dir][r]);

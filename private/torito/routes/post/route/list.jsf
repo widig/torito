@@ -17,7 +17,7 @@
             }
             try {
 		
-                var ms = { get : {}, post : {}, static :{} };
+                var ms = { get : {}, post : {}, websocket:{},static :{} };
                 for(var item in app._router.stack) {
                     var i = app._router.stack[item];
                     if(i.route) {

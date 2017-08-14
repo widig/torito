@@ -11,6 +11,7 @@ module.exports = {
 		    "_" : "./private/"+name+"/routes",
 		    "get" : "./private/"+name+"/routes/get",
 		    "post" : "./private/"+name+"/routes/post",
+		    "websocket" : "./private/" + name + "/routes/websocket",
 		    "static" : "./private/"+name+"/routes/static"
         },
 	"meta" : {

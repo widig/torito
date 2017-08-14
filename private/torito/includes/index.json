@@ -1,5 +1,6 @@
 {
 	"express" : "express",
+	"express_ws_routes" : "express-ws-routes",
 	"fs" : "fs",
 	"vm" : "vm",
 	"util" : "util",

@@ -10,13 +10,11 @@
         req.on('end', function () {
             var qs = require('querystring');
             var post = qs.parse(body.join(""));
-
             if(!(req.session.logged && req.session.level == 0)) {
                 res.send(JSON.stringify({result:false,msg:"not logged."}));
                 res.end();
                 return;
             }
-
             if(!("data" in post)) {
                 res.json({result:false,msg:"no data."});
                 return;
@@ -59,6 +57,15 @@
                 var str = data.join("");
                 
                 if(code == 0 && str == app_name+".c\r\n") {
+                    var state = 0;
+                    var timeout = setTimeout(function() {
+                        if(state != 1) {
+                            console.log("WAITING");
+                            state = 2;
+                            // generate id to look for archived results
+                            res.json({result:true,wait:true});
+                        }
+                    },1000);
                     var child2 = spawn(tmp_folder + '/'+app_name, []);
                     var data2 = [];
                     child2.stderr.on("data", function (chunk) {
@@ -74,8 +81,16 @@
                             mod.fs.unlinkSync(tmp_folder + "/"+app_name+".exe");
                             mod.fs.unlinkSync(tmp_folder + "/"+app_name+".c");
                             mod.fs.unlinkSync(tmp_folder + "/"+app_name+".obj");
-                            res.json({result:true,msg:data2.join("")});
-                            return;
+                            if(state == 2) {
+                                console.log("WRITING RESULT");
+                                // already sent response, so archive result with id
+                                mod.fs.writeFileSync(tmp_folder + "/test.txt", data2.join(""), "utf8");
+                                return;
+                            } else {
+                                state = 1;
+                                res.json({result:true,msg:data2.join("")});
+                                return;
+                            }
                         }
                     });
                 } else {

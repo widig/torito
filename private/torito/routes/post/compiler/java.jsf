@@ -62,6 +62,15 @@
                         app_name
                     ];
                     console.log(JSON.stringify(cargs));
+                    var state = 0;
+                    var timeout = setTimeout(function() {
+                        if(state != 1) {
+                            console.log("WAITING");
+                            state = 2;
+                            // generate id to look for archived results
+                            res.json({result:true,wait:true});
+                    }
+                    },1000);
                     var child2 = spawn(java_path + 'java.exe', cargs);
                     var data2 = [];
                     child2.stderr.on("data", function (data) {
@@ -77,13 +86,18 @@
                             console.log("error??",code,data2.join(""));
                             res.json({result:false,code:code,msg:data2.join("")});
                         } else {
-                            console.log("!!");
                             mod.fs.unlinkSync(tmp_folder + "/"+app_name+".class");
                             mod.fs.unlinkSync(tmp_folder + "/"+app_name+".java");
-                            res.json({result:true,msg:data2.join("")});
-                            return;
+                            if(state == 2) {
+                                console.log("WRITING RESULT");
+                                mod.fs.writeFileSync(tmp_folder + "/test.txt", data2.join(""), "utf8");
+                                return;
+                            } else {
+                                state = 1;
+                                res.json({result:true,msg:data2.join("")});
+                                return;
+                            }
                         }
-                        
                     });
                 } else {
                     console.log("??",code);

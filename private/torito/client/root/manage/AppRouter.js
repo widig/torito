@@ -412,7 +412,11 @@ Class.define("AppRouter",{
                                 "<td align='right' width='80'>route path: </td><td><input id='txtRoutePath' type='text' style='width:100px;'/></td>"+
                             "</tr>"+
                             "<tr>"+
-                                "<td colspan='2'>get <input id='rRouteMethod1' name='method' type='radio' checked/> post <input id='rRouteMethod2' name='method' type='radio'/> static <input id='rRouteMethod3' name='method' type='radio'/></td>"+
+                                "<td colspan='2'>"+
+                                    "get <input id='rRouteMethod1' name='method' type='radio' checked/> "+
+                                    "post <input id='rRouteMethod2' name='method' type='radio'/><br/>"+
+                                    "websocket <input id='rRouteMethod4' name='method' type='radio'/> "+
+                                    "static <input id='rRouteMethod3' name='method' type='radio'/></td>"+
                             "</tr>"+
                             "<tr>"+
                                 "<td align='right'>static path:</td><td><input id='txtStaticPath' type='text' style='width:100px;'/></td>"+
@@ -708,7 +712,14 @@ Class.define("AppRouter",{
                 var method = p.el.rRouteMethod1.checked == true ? "get" : "";
                 if(method == "") method = p.el.rRouteMethod2.checked == true ? "post" : "";
                 if(method == "") method = p.el.rRouteMethod3.checked == true ? "static" : "";
-                if(method == "static") {
+                if(method == "") method = p.el.rRouteMethod4.checked == true ? "websocket" : "";
+                if(method == "") method = "get";
+
+                if(method == "post") {
+                    
+                } else if(method == "websocket") {
+
+                } else if(method == "static") {
                     code = JSON.stringify({
                         path : path,
                         target : p.el.txtStaticPath.value
@@ -721,6 +732,7 @@ Class.define("AppRouter",{
                     var code = str.charCodeAt(x);
                     sb.push( dict[ (0xF0 & code) >> 4 ] + dict[ 0xF & code ]  );
                 }
+                
                 Import({ url:"/route/install", method:"post",data:{path:path,method:method,code:sb.join("")}})
                     .done(function(result) {
                         alert(result);

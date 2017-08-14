@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+	<head>
+		<script>
+			window.addEventListener("load",function() {
+				var ws = new WebSocket("ws://localhost:3002/sample_channel");
+				ws.onopen = function (event) {
+					ws.send("open2"); 
+				};
+				ws.onclose = function(event) {
+					alert("closed");
+				};
+				ws.onmessage = function(event) {
+					var msg = event.data;
+					alert(msg);
+					if(msg == "open123") {
+						ws.close();
+					}
+				}
+			});
+		</script>
+	</head>
+	<body>
+		teste3
+	</body>
+</html>

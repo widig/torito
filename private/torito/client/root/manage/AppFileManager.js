@@ -79,6 +79,10 @@ Class.define("AppFileManager",{
 						currentNames : []
 					}
 				},
+				compiler : {
+					dispose : function() {
+					}
+				},
 				editor : {
 					fileSelected : "",
 					loaded : false,
@@ -210,7 +214,12 @@ Class.define("AppFileManager",{
 			});
 
 
-
+			UI.Window.on("keydown",function(e) {
+				// close compile results
+				if( e.keyCode == 27 ) {
+					app.compiler.dispose();
+				}
+			});
 
 			UI.Window.on("resize",app.resize);
 			document.body.style.overflow = "hidden";
@@ -341,8 +350,6 @@ Class.define("AppFileManager",{
 							})
 						})
 						.send();
-						
-
 					}
 					function deleteFile(path,done,err) {
 						Import({url:"/file/rm", method:"post", data : { dir : path } })
@@ -1221,8 +1228,119 @@ Class.define("AppFileManager",{
 					function _result(data) {
 						data = JSON.parse(data);
 						if(data.result) {
-							alert(data.msg);
-							// a json model to output is desireable
+
+							function dialog(msg) {
+								// create a dialog 
+								var target = context.serverContainer.$.dialog;
+								target.$.elementsClear();
+								target.el.style.position = "absolute";
+								target.el.style.left = parseInt( (window.innerWidth - 640)/2 ) + "px";
+								target.el.style.top = parseInt( (window.innerHeight - 480)/2 ) + "px";
+								target.el.style.width = "640px";
+								target.el.style.height = "480px";
+								target.el.style.backgroundColor = "black";
+								target.el.style.overflow = "auto";
+								//target.el.style.display = "";
+								target.el.style.color = "lime";
+								target.el.style.display = "";
+								target.el.style.alignItems = "";
+								target.el.style.justifyContent = "";
+								target.el.style.fontWeight = "";
+								app.compiler.dispose = function() {
+									target.el.style.display = "none";
+									app.compiler.dispose = function(){};
+								}
+								var error = false;
+								try {
+									var json = JSON.parse( msg );
+
+									if( "type" in json ) {
+										if(json.type == "image") {
+											target.el.style.display = "flex";
+  											target.el.style.alignItems = "center";
+  											target.el.style.justifyContent = "center";
+
+											// display image
+											var w = json.data.width, h = json.data.height, data = json.data.raw; // hex
+											var sb = Import.Codec.Hex2NumArray(data);
+											var p = target.$.elementPushPacket(
+												"<center>"+
+												"<canvas id='canvas' width='"+w+"' height='"+h+"' style='width:"+w+"px;height:"+h+"px;'></canvas>"+
+												"</center>"
+											);
+											var ctx = p.el.canvas.getContext("2d");
+											var img = ctx.getImageData(0,0,w,h), pos = 0, p = 0;
+											for(var y = 0; y < h;y++) {
+												for(var x = 0; x < w;x++) {
+													img.data[pos] = sb[p]; img.data[pos+1] = sb[p+1]; img.data[pos+2] = sb[p+2]; img.data[pos+3] = 255; pos += 4; p += 3;
+												}
+											}
+											ctx.putImageData(img,0,0);
+										}
+									} else {
+										error = true;
+									}
+								} catch(e) {
+									error = true;
+								}
+								if(error) {
+									
+									var p = target.$.elementPushPacket("<div id='content' style='font-family:Verdana; font-size:20px;'></div>");
+									p.$.content.elementSetPacket(msg.split("\r").join("").split("\n").join("<br/>"));
+									//alert(data.msg);
+									// a json model to output is desireable
+									
+								}
+
+							}
+							// check if is wait result then start a ping to check for results, create a dialog to cancel execution
+							if("wait" in data && data.wait) {
+								//alert("long run");
+
+								// setup wait window
+								var target = context.serverContainer.$.dialog;
+								target.$.elementsClear();
+								target.el.style.position = "absolute";
+								target.el.style.left = parseInt( (window.innerWidth-110 ) ) + "px";
+								target.el.style.top = parseInt( 10 ) + "px";
+								target.el.style.width = "100px";
+								target.el.style.height = "50px";
+								target.el.style.backgroundColor = "red";
+								target.el.style.overflow = "auto";
+								target.el.style.display = "";
+								target.el.style.color = "white";
+								target.el.style.fontFamily = "Verdana";
+								target.el.style.fontWeight = "bold";
+								target.el.style.display = "flex";
+  								target.el.style.alignItems = "center";
+  								target.el.style.justifyContent = "center";
+
+								target.$.elementSetPacket("<div style='text-align:center;'>running</div>");
+
+								function longCheck() {
+									Import({url:"/compiler/long/check",method:"post"})
+									.done(function(data) {
+										data = JSON.parse(data);
+										if(data.result) {
+											dialog(data.msg);
+										} else {
+											setTimeout(function() {
+												longCheck();
+											},2000);
+										}
+									})
+									.fail(function(data) {
+										alert("fail to check results");
+									})
+									.send();
+
+								}
+								setTimeout(function() {
+									longCheck();
+								},0);
+							} else {
+								dialog(data.msg);
+							}
 						} else {
 							alert("error");
 							alert(data.msg);
@@ -1327,9 +1445,75 @@ Class.define("AppFileManager",{
 				var ext = path.split(".").pop();
 				p.$.title.elementSetPacket(path);
 				// make view register of file format
+				if(ext == "jsbin" || ext == "jsbin") {
+					/**************************************************************** */
+					/* JSBIN SPECIFICATION                                            */
+					/* language -> input                                              */
+					/* app -> shell | html | custom                                   */
+					/*                                                                */
+					/*                                                                */
+					/**************************************************************** */
 
-				if(ext == "mp4") {
-					
+					/**************************************************************** */
+					/* custom app example                                             */
+					/*                                                                */
+					/* robotic arm drawed as a element in html                        */
+					/*                                                                */
+					/* custom shell or controller(script selector)                    */
+					/*                                                                */
+					/**************************************************************** */
+
+					/*
+					Class Camera {
+						
+					}
+					Class Arm {
+						axis 1 pin {
+							rotate over path
+							translate over path
+						}
+						axis 2 pin {
+							rotate
+						}
+					}
+					Class Train { // fixed composition
+
+					}
+					Class Floor {
+						
+					}
+					Class Ramp {
+
+					}
+					Class FloorElevator {
+
+					}
+					Class Rail {
+						ondraw() {
+
+						}
+					}
+
+					 */
+					// execute file as javascript user
+
+					Import({url:"/load",query:{file:escape(path)}})
+					.done(function(data) {
+
+						// good users don't need to waste time with protection.
+
+						// pre parse
+
+						// post parse
+							eval(data);
+						
+						
+						// bad users trade wasted time with protection as good deals.
+
+					}).send();
+
+				} else if(ext == "mp4" || ext == "avi") {
+
 					p.el.editor.style.display = "none";
 					p.el.view.style.backgroundColor = "#000";
 					p.el.view.style.display = "flex";
@@ -1611,7 +1795,6 @@ Class.define("AppFileManager",{
 							});
 							// app.editor.main.getModel()._options.tabSize = 4;
 							// app.editor.main.getModel().updateOptions({ tabSize: 4 })
-
 							app.editor.main.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, function() {
 								saveFile();
 							});

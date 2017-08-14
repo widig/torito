@@ -48,7 +48,7 @@
                             return;
                         } catch(e) {
                             res.status(200).json({
-                                result : false
+                                result : false, msg : "1"
                             });
                             return;
                         }
@@ -56,11 +56,11 @@
                 }
                 console.log(">>false:",arr);
                 res.status(200).json({
-                    result : false
+                    result : false, msg : "2"
                 });
                 return;
             } else {
-                res.status(200).send(JSON.stringify({result:false}));
+                res.status(200).send(JSON.stringify({result:false, msg : "3"}));
                 return;
             }
             

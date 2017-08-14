@@ -25,7 +25,8 @@ Class.define("ServerContainer",{
                             "</td>"+
                         "</tr>"+
                     "</table>"+
-                "</div>"
+                "</div>" + 
+                "<div id='dialog'></div>"
             );
             p.el.GotoDraw.addEventListener("click",function() {
                 alert("ok1");
@@ -37,6 +38,7 @@ Class.define("ServerContainer",{
             });
             p.el.container.style.width = (window.innerWidth-20) + "px";
             this.main_element = { $: p.$.container, el : p.el.container };
+            this.dialog = { $ : p.$.dialog, el : p.el.dialog };
             this.btnMenu = { $ : p.$.btnMenu,  el : p.el.btnMenu };
             UI.Window.on("resize",function() {
                 p.el.container.style.width = (window.innerWidth-20) + "px";

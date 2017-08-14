@@ -39,6 +39,17 @@
             // C:\Users\alien\Projects\new2\private\user\root\c>"C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\amd64\cl.exe" /Fo.\samples\test\Hello.obj /Fe.\samples\test\Hello.exe .\samples\Hello.c
             console.log(JSON.stringify(cargs));
             var go_compiler = go_path + "go.exe";
+            
+            var state = 0;
+            var timeout = setTimeout(function() {
+                if(state != 1) {
+                    console.log("WAITING");
+                    state = 2;
+                    // generate id to look for archived results
+                    res.json({result:true,wait:true});
+                }
+            },1000);
+
             var child = spawn(go_compiler, cargs);
             var data = [];
             child.stderr.on("data", function (chunk) {
@@ -51,11 +62,16 @@
                 if(code !=0) {
                     res.json({result:false,code:code,msg:data.join("")});
                 } else {
-                    console.log("!!");
                     mod.fs.unlinkSync(tmp_folder + "/"+app_name+".go");
-                    //mod.fs.unlinkSync(tmp_folder + "/"+app_name+".obj");
-                    res.json({result:true,msg:data.join("")});
-                    return;
+                    if(state == 2) {
+                        console.log("WRITING RESULT");
+                        mod.fs.writeFileSync(tmp_folder + "/test.txt", data.join(""), "utf8");
+                        return;
+                    } else {
+                        state = 1;
+                        res.json({result:true,msg:data.join("")});
+                        return;
+                    }
                 }
             });
         });

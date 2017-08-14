@@ -12,6 +12,7 @@ webfile.import("/public/page/torito/js/Download.js","js");
 webfile.import("/public/control/jszip/dist/jszip.min.js");
 webfile.import("/public/control/esprima/esprima.js");
 webfile.import("/public/control/escodegen/escodegen.js");
+webfile.import("/public/control/lamejs/lame.all.js");
 
 
 webfile.import("/public/control/monaco/dev/vs/editor/editor.main.css","css");
@@ -34,6 +35,7 @@ webfile.import(__dirname + "/manage/ServerContainer.js","js");
 webfile.import(__dirname + "/manage/ServerMenu.js","js");
 webfile.page("manage",__dirname);
 
+webfile.import(__dirname + "/draw/AppShell.js","js");
 webfile.page("draw",__dirname);
 
 webfile.page("stream",__dirname);

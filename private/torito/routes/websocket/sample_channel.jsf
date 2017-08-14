@@ -1,0 +1,18 @@
+(function(){
+	return function(info, cb, next) {
+        console.log(
+		    'ws req from %s using origin %s',
+		    info.req.originalUrl || info.req.url,
+		    info.origin
+	    );
+	    // Accept connections by passing a function to cb that will handle the connected websocket
+	    cb(function(ws) { // on open
+		    ws.send("open123");
+		    ws.on('close', function close() {
+			    console.log('disconnected');
+		    });
+		    ws.on('message', function incoming(data) {
+            });
+        });
+    };
+})();

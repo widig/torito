@@ -58,6 +58,8 @@
                 try {
                     var method = "get";
                     if("method" in post && post.method == "post") method = "post";
+                    if("method" in post && post.method == "websocket") method = "websocket";
+                    
                     if("method" in post && post.method == "static") method = "static";
                     var routes = [];
                     for(var item in app._router.stack) {
