@@ -1,4 +1,4 @@
-## this is alpha version, so don't use it in production. just for tests purposes.
+## this is beta version, so don't use it in production. just for tests purposes.
 
 
 # Torito - The web runtime editor
