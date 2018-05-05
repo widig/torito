@@ -1,7 +1,7 @@
 ## this is alpha version, so don't use it in production. just for tests purposes.
 
 
-# Torito - the best meta tool I ever used.
+# Torito - The web runtime editor
 
 With Torito you can edit Torito source.
 
