@@ -39,8 +39,7 @@ After login, click on logo to get access to menu. Click on Routes. Add '/HelloWo
 })();
 ```
 
-then you can access domain/helloWorld1
-
+then you can access domain/helloWorld1 because it is already online!
 
 ## Folder Structure
 
