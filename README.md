@@ -22,7 +22,7 @@ download. unpack. then run the command:
 npm install
 ```
 
-it will start a server on port 3001.
+it will start a server on port 3002.
 
 if you need to change it, edit on ./index.js
 
@@ -30,6 +30,17 @@ demo at ["heroku"](https://ancient-gorge-38573.herokuapp.com)
 
 username: root
 password: password
+
+After login, click on logo to get access to menu. Click on Routes. Add '/HelloWorld1' for example with option GET marked, in the form. It will result in a text code like this:
+
+```
+(function(){
+	return function(req,res){ res.send("/helloWorld1");};
+})();
+```
+
+then you can access domain/helloWorld1
+
 
 ## Folder Structure
 
@@ -84,5 +95,6 @@ stores the routes.
         /route/remove
         
 
-this documentations is under construction.
+
+
 
