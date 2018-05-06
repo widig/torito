@@ -1,6 +1,3 @@
-## this is beta version, so don't use it in production. just for tests purposes.
-
-
 # Torito - The web runtime editor
 
 With Torito you can edit Torito source.
